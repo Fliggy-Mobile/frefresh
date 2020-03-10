@@ -6,7 +6,6 @@ import 'package:flutter/scheduler.dart';
 
 enum RefreshState {
   PREPARING_REFRESH,
-  SCROLL_TO_REFRESH,
   REFRESHING,
   FINISHING,
   AIDL,
@@ -136,14 +135,7 @@ class _FRefreshState extends State<FRefresh> {
         } else if (!(-_scrollController.position.pixels >=
                 widget.triggerOffset) &&
             _stateNotifier.value == RefreshState.PREPARING_REFRESH) {
-          _stateNotifier.value = RefreshState.SCROLL_TO_REFRESH;
-//          _stateNotifier.value = RefreshState.AIDL;
-        } else if(_stateNotifier.value == RefreshState.PREPARING_REFRESH){
-//          _stateNotifier.value = RefreshState.SCROLL_TO_REFRESH;
-        }
-      } else if(_dragNotifier.value == null || _dragNotifier.value is UserScrollNotification){
-        if (_scrollController.position.pixels == 0.0 && _stateNotifier.value == RefreshState.SCROLL_TO_REFRESH) {
-          _stateNotifier.value = RefreshState.REFRESHING;
+          _stateNotifier.value = RefreshState.AIDL;
         }
       }
     });
@@ -219,8 +211,6 @@ class _FRefreshState extends State<FRefresh> {
           _dragNotifier.value = notification.dragDetails;
         } else if (notification is ScrollEndNotification) {
           _dragNotifier.value = notification.dragDetails;
-        } else {
-          _dragNotifier.value = notification;
         }
         return false;
       },
@@ -358,7 +348,7 @@ class _HeaderContainerRenderObject extends RenderSliverSingleBoxAdapter {
 //    markNeedsLayout();
 //  }
 
-  bool get scrollToRefreshing => stateNotifier != null && stateNotifier.value == RefreshState.SCROLL_TO_REFRESH;
+  bool scrollToRefreshing = false;
 
   bool get refreshing =>
       stateNotifier != null && stateNotifier.value == RefreshState.REFRESHING;
@@ -410,7 +400,7 @@ class _HeaderContainerRenderObject extends RenderSliverSingleBoxAdapter {
 //    print("constraints.axis = ${constraints.axis}");
 //    print("refresh = $refreshing");
 //    print("finishing = $finishing");
-//    if (refreshing) scrollToRefreshing = false;
+    if (refreshing) scrollToRefreshing = false;
     if (isOverScroll || scrollToRefreshing) {
       if (refreshing || scrollToRefreshing) {
         geometry = SliverGeometry(
@@ -457,16 +447,16 @@ class _HeaderContainerRenderObject extends RenderSliverSingleBoxAdapter {
         );
       }
     }
-//    if (overOffset <= triggerOffset &&
-//        stateNotifier != null &&
-//        stateNotifier.value == RefreshState.PREPARING_REFRESH &&
-//        !scrollToRefreshing) {
-//      scrollToRefreshing = true;
-//    } else if (overOffset == 0.0 && scrollToRefreshing) {
-//      SchedulerBinding.instance.addPostFrameCallback((time) {
-//        stateNotifier.value = RefreshState.REFRESHING;
-//      });
-//    }
+    if (overOffset <= triggerOffset &&
+        stateNotifier != null &&
+        stateNotifier.value == RefreshState.PREPARING_REFRESH &&
+        !scrollToRefreshing) {
+      scrollToRefreshing = true;
+    } else if (overOffset == 0.0 && scrollToRefreshing) {
+      SchedulerBinding.instance.addPostFrameCallback((time) {
+        stateNotifier.value = RefreshState.REFRESHING;
+      });
+    }
 //    print("performLayout---------------------end-----------------------\n");
   }
 }
