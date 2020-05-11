@@ -5,3 +5,18 @@
 .pub/
 
 build/
+
+.idea/
+
+.metadata
+
+*.iml
+
+pubspec.lock
+
+
+android/
+ios/
+macos/
+
+readme.py
