@@ -397,11 +397,6 @@ class _HeaderContainerRenderObject extends RenderSliverSingleBoxAdapter {
   void performLayout() {
     final double overOffset =
         constraints.overlap < 0.0 ? constraints.overlap.abs() : 0.0;
-    print('constraints.overlap = ${constraints.overlap}');
-//    if (constraints.overlap == 0.0) {
-//        geometry = SliverGeometry.zero;
-//        return;
-//    }
     child.layout(
       constraints.asBoxConstraints(
         maxExtent: height,

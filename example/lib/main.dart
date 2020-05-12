@@ -62,7 +62,6 @@ class _MyAppState extends State<MyApp> {
                 itemBuilder: (_, index) {
                   return GestureDetector(
                     onTap: () {
-                      print('refresh');
                       controller.refresh(duration: Duration(milliseconds: 1000));
                     },
                     child: Container(
