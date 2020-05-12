@@ -18,6 +18,12 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     controller = FRefreshController();
+    controller.setOnStateChangedCallback((state) {
+      print('state = $state');
+    });
+    controller.setOnScrollListener((metrics) {
+//      print('metrics = $metrics');
+    });
   }
 
   @override
@@ -25,26 +31,49 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Plugin example app'),
+          title: const Text('FRefresh'),
         ),
         body: Container(
+          width: double.infinity,
+          height: 200,
+          color: Colors.blue,
           child: FRefresh(
+            headerHeight: 80.0 + 20,
+            headerTrigger: 50,
             controller: controller,
             header: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 Image.asset(
                   "asserts/gif1.gif",
-                  width: 30,
-                  height: 30,
+                  width: 80,
+                  height: 80,
                 ),
                 Text("刷新中.."),
               ],
             ),
-            child: Container(
-              color: Colors.redAccent,
-              height: 500,
-            ),
+            footer: Container(height: 50, color: Colors.red, child: Text("加载更多..")),
+            footerHeight: 50,
+            child: ListView.builder(
+                physics: NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                itemCount: 5,
+                itemBuilder: (_, index) {
+                  return GestureDetector(
+                    onTap: () {
+                      print('refresh');
+                      controller.refresh(
+                          duration: Duration(milliseconds: 2000));
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      height: 50,
+                      alignment: Alignment.center,
+                      child: Text("Item $index"),
+                    ),
+                  );
+                }),
             onRefresh: () {
               Timer(Duration(milliseconds: 3000), () {
                 controller.finish();

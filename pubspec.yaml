@@ -1,8 +1,8 @@
 name: frefresh
 description: A new Flutter plugin.
-version: 0.0.1
-author:
-homepage:
+version: 1.0.0
+author: CoorChice<coorchice.cb@alibaba-inc.com>
+homepage: https://github.com/Fliggy-Mobile/frefresh
 
 environment:
   sdk: ">=2.1.0 <3.0.0"
