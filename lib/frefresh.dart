@@ -160,6 +160,7 @@ class _FRefreshState extends State<FRefresh> {
     if (_stateNotifier != null &&
         _stateNotifier.value == RefreshState.AIDL &&
         _scrollController != null) {
+      _scrollController.jumpTo(0.0);
       _scrollController.animateTo(-widget.headerHeight,
           duration: duration, curve: Curves.linear);
     }

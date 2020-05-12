@@ -58,13 +58,12 @@ class _MyAppState extends State<MyApp> {
             child: ListView.builder(
                 physics: NeverScrollableScrollPhysics(),
                 shrinkWrap: true,
-                itemCount: 5,
+                itemCount: 10,
                 itemBuilder: (_, index) {
                   return GestureDetector(
                     onTap: () {
                       print('refresh');
-                      controller.refresh(
-                          duration: Duration(milliseconds: 2000));
+                      controller.refresh(duration: Duration(milliseconds: 1000));
                     },
                     child: Container(
                       width: double.infinity,
