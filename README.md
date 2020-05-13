@@ -89,24 +89,24 @@
 
 #### 📡 接口
 
---
+---
 - `void refresh({Duration duration = const Duration(milliseconds: 300)})`
 
 主动触发下拉刷新。  
 
 [duration] 下拉动效时长。默认 300ms
 
---
+---
 - `finishRefresh()`
 
 结束下拉刷新。
 
---
+---
 - `finishLoad()`
 
 结束上拉加载。
 
---
+---
 - `void setOnStateChangedCallback(OnStateChangedCallback callback)`
 
 设置状态监听。e.g.:
@@ -121,7 +121,7 @@ controller.setOnStateChangedCallback((state){
    }
 })
 ```
---
+---
 - `void setOnScrollListener(OnScrollListener onScrollListener)`
 
 设置滚动监听。接收 [ScrollMetrics]。
