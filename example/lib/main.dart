@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:ffloat/ffloat.dart';
 import 'package:flutter/material.dart';
 
 import 'package:frefresh/frefresh.dart';
@@ -20,9 +21,12 @@ class _MyAppState extends State<MyApp> {
     controller = FRefreshController();
     controller.setOnStateChangedCallback((state) {
       print('state = $state');
+      if (state is RefreshState) {
+
+      }
     });
     controller.setOnScrollListener((metrics) {
-//      print('metrics = $metrics');
+//      print('scollerOffset = ${metrics.pixels}');
     });
   }
 
@@ -35,34 +39,43 @@ class _MyAppState extends State<MyApp> {
         ),
         body: Container(
           width: double.infinity,
-          height: 200,
+//          height: 200,
           color: Colors.blue,
           child: FRefresh(
             headerHeight: 80.0 + 20,
-            headerTrigger: 50,
+            headerTrigger: 200,
             controller: controller,
             header: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                Image.asset(
-                  "asserts/gif1.gif",
-                  width: 80,
-                  height: 80,
+                Container(
+                  color: Colors.red,
+                  child: Image.asset(
+                    "asserts/gif1.gif",
+                    width: 80,
+                    height: 80,
+                  ),
                 ),
                 Text("刷新中.."),
               ],
             ),
-            footer: Container(height: 50, color: Colors.red, child: Text("加载更多..")),
-            footerHeight: 50,
+            footer: Container(
+                alignment: Alignment.center,
+                height: 100,
+                color: Colors.red,
+                child: Text("加载更多..")),
+            footerHeight: 100,
+            footerTrigger: 50,
             child: ListView.builder(
                 physics: NeverScrollableScrollPhysics(),
                 shrinkWrap: true,
-                itemCount: 10,
+                itemCount: 20,
                 itemBuilder: (_, index) {
                   return GestureDetector(
                     onTap: () {
-                      controller.refresh(duration: Duration(milliseconds: 1000));
+                      controller.refresh(
+                          duration: Duration(milliseconds: 1000));
                     },
                     child: Container(
                       width: double.infinity,
@@ -74,7 +87,12 @@ class _MyAppState extends State<MyApp> {
                 }),
             onRefresh: () {
               Timer(Duration(milliseconds: 3000), () {
-                controller.finish();
+                controller.finishRefresh();
+              });
+            },
+            onLoad: () {
+              Timer(Duration(milliseconds: 3000), () {
+                controller.finishLoad();
               });
             },
           ),

@@ -61,13 +61,89 @@
 # 🛠 使用指南
 
 
-## ⚙️ 参数
+## ⚙️ 参数 & 接口
 
-### 🔩 基础参数
+### 🔩 FRefresh 参数
 
 |参数|类型|必要|默认值|说明|
 |---|---|:---:|---|---|
-|builder|FloatBuilder|是|null|通过 [FloatBuilder] 返回 [FFloat] 的内容组件。如果只更新内容区域的话，通过 `setter((){})` 进行|
+|header|Widget|否|null|下拉刷新时会展示的元素|
+|headerHeight|double|否|50.0|[header] 区域的高度|
+|headerTrigger|double|否|0.0|触发下拉刷新的距离，应大于 [headerHeight]|
+|onRefresh|VoidCallback|否|null|触发刷新时会回调|
+|footer|Widget|否|null|上拉加载时会展示的元素|
+|footerHeight|double|否|0.0|[footer] 区域的高度|
+|footerTrigger|double|否|0.0|触发上拉加载的距离，应大于 [headerHeight]|
+|onLoad|VoidCallback|否|null|触发加载时会回调|
+|controller|FRefreshController|否|null|[FRefresh] 的控制器。详见 [FRefreshController]|
+
+
+### ⌨️ FRefreshController 
+
+#### 🔧 属性
+
+|属性|类型|说明|
+|---|---|---|
+|refreshState|RefreshState|获取下拉刷新状态。详见 [RefreshState]|
+|loadState|LoadState|获取上拉加载状态。详见 [LoadState]|
+
+#### 📡 接口
+
+--
+- `void refresh({Duration duration = const Duration(milliseconds: 300)})`
+
+主动触发下拉刷新。  
+
+[duration] 下拉动效时长。默认 300ms
+
+--
+- `finishRefresh()`
+
+结束下拉刷新。
+
+--
+- `finishLoad()`
+
+结束上拉加载。
+
+--
+- `void setOnStateChangedCallback(OnStateChangedCallback callback)`
+
+设置状态监听。e.g.:
+
+```
+controller.setOnStateChangedCallback((state){
+  if (state is RefreshState) {
+
+  }
+  if (state is LoadState) {
+
+   }
+})
+```
+--
+- `void setOnScrollListener(OnScrollListener onScrollListener)`
+
+设置滚动监听。接收 [ScrollMetrics]。
+
+### 🃏 RefreshState
+
+|值|说明|
+|---|---|
+|PREPARING_REFRESH|达到 [headerTrigger]，准备进入刷新状态|
+|REFRESHING|刷新中|
+|FINISHING|刷新结束中|
+|IDLE|空闲状态|
+
+
+### 🃏 LoadState
+
+|值|说明|
+|---|---|
+|PREPARING_LOAD|达到 [footerTrigger]，准备进入加载状态|
+|LOADING|加载中|
+|FINISHING|加载结束中|
+|IDLE|空闲状态|
 
 
 ## 📺 使用示例
