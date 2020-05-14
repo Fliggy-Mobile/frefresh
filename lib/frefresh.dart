@@ -229,6 +229,12 @@ class FRefresh extends StatefulWidget {
   /// [Refresh] controller. See [Refresh Controller] for details.
   final FRefreshController controller;
 
+  /// 是否应该触发上拉加载。在一些场景中，当加载完成后，上拉加载元素将需要变为页脚。
+  ///
+  /// Whether the pull-up load should be triggered.
+  /// In some scenarios, when loading is complete, the pull-up loading element will need to be turned into a footer.
+  bool shouldLoad;
+
 //  final bool shrinkWrap;
 
   FRefresh({
@@ -243,6 +249,7 @@ class FRefresh extends StatefulWidget {
     this.footerHeight = 0.0,
     this.footerTrigger,
     this.onLoad,
+    this.shouldLoad = true,
 //    this.shrinkWrap = false,
   }) : super(key: key) {
     if (headerTrigger == null || headerTrigger < headerHeight) {
@@ -384,7 +391,8 @@ class _FRefreshState extends State<FRefresh> {
         }
 
         /// handle loading
-        if (widget.footer != null &&
+        if (widget.shouldLoad &&
+            widget.footer != null &&
             widget.footerHeight > 0 &&
             widget.onLoad != null &&
             notification.metrics.maxScrollExtent > 0.0) {

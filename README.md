@@ -9,7 +9,7 @@
 
 <div align="center">
 
-<p>***。</p>
+<p>下拉刷新，上拉加载，轻轻松松搞定。</p>
 
 <p>***</p>
 
@@ -74,6 +74,7 @@
 |footer|Widget|否|null|上拉加载时会展示的元素|
 |footerHeight|double|否|0.0|[footer] 区域的高度|
 |footerTrigger|double|否|0.0|触发上拉加载的距离，应大于 [headerHeight]|
+|shouldLoad|bool|否|true|是否应该触发上拉加载。在一些场景中，当加载完成后，上拉加载元素将需要变为页脚|
 |onLoad|VoidCallback|否|null|触发加载时会回调|
 |controller|FRefreshController|否|null|[FRefresh] 的控制器。详见 [FRefreshController]|
 

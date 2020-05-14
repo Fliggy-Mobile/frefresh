@@ -14,7 +14,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   FRefreshController controller;
-
+  bool canLoad = true;
   @override
   void initState() {
     super.initState();
@@ -39,11 +39,10 @@ class _MyAppState extends State<MyApp> {
         ),
         body: Container(
           width: double.infinity,
-//          height: 200,
+          height: 200,
           color: Colors.blue,
           child: FRefresh(
             headerHeight: 80.0 + 20,
-            headerTrigger: 200,
             controller: controller,
             header: Column(
               mainAxisAlignment: MainAxisAlignment.end,
@@ -67,6 +66,7 @@ class _MyAppState extends State<MyApp> {
                 child: Text("加载更多..")),
             footerHeight: 100,
             footerTrigger: 50,
+            shouldLoad: canLoad,
             child: ListView.builder(
                 physics: NeverScrollableScrollPhysics(),
                 shrinkWrap: true,
@@ -93,6 +93,9 @@ class _MyAppState extends State<MyApp> {
             onLoad: () {
               Timer(Duration(milliseconds: 3000), () {
                 controller.finishLoad();
+                setState(() {
+                  canLoad = false;
+                });
               });
             },
           ),
