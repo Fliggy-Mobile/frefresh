@@ -67,7 +67,9 @@
 
 |参数|类型|必要|默认值|说明|
 |---|---|:---:|---|---|
+|child|Widget|是|null|主要视图内容|
 |header|Widget|否|null|下拉刷新时会展示的元素|
+|headerBuilder|HeaderBuilder|否|null|构建下拉刷新元素。会覆盖 [header] 配置。|
 |headerHeight|double|否|50.0|[header] 区域的高度|
 |headerTrigger|double|否|0.0|触发下拉刷新的距离，应大于 [headerHeight]|
 |onRefresh|VoidCallback|否|null|触发刷新时会回调|

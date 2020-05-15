@@ -60,8 +60,14 @@ typedef OnStateChangedCallback = void Function(dynamic state);
 /// Callback when [FRefresh] scroll occurs
 typedef OnScrollListener = void Function(ScrollMetrics metrics);
 
+/// 用于构建下拉刷新元素
+///
+/// Used to construct pull-down refresh elements
+typedef HeaderBuilder = Widget Function(
+    StateSetter setter, BoxConstraints constraints);
+
 double _pixel(double dp) {
-  return MediaQueryData.fromWindow(window).devicePixelRatio * dp;
+  return 1 * dp;
 }
 
 class FRefreshController {
@@ -173,20 +179,26 @@ class FRefreshController {
   }
 }
 
+// ignore: must_be_immutable
 class FRefresh extends StatefulWidget {
   /// Debug 配置
   ///
   /// Debug configuration
-  static const bool debug = false;
+  static bool debug = false;
 
   /// 下拉刷新时会展示的元素
   ///
   /// Elements that will be displayed when you pull down and refresh
   final Widget header;
 
-  /// 子元素
+  /// 构建下拉刷新元素。会覆盖 [header] 配置。
   ///
-  /// Child element
+  /// Build drop-down refresh element. [Header] configuration will be overwritten.
+  final HeaderBuilder headerBuilder;
+
+  /// 主要视图内容
+  ///
+  /// Main view content
   final Widget child;
 
   /// 上拉加载时会展示的元素
@@ -240,6 +252,7 @@ class FRefresh extends StatefulWidget {
   FRefresh({
     Key key,
     this.header,
+    this.headerBuilder,
     @required this.child,
     this.footer,
     this.onRefresh,
@@ -251,7 +264,8 @@ class FRefresh extends StatefulWidget {
     this.onLoad,
     this.shouldLoad = true,
 //    this.shrinkWrap = false,
-  }) : super(key: key) {
+  })  : assert(child != null),
+        super(key: key) {
     if (headerTrigger == null || headerTrigger < headerHeight) {
       headerTrigger = headerHeight;
     }
@@ -291,13 +305,15 @@ class _FRefreshState extends State<FRefresh> {
 
     _stateNotifier.addListener(() {
       widget.controller?.refreshState = _stateNotifier.value;
-      if (_stateNotifier.value == RefreshState.REFRESHING) {
-        widget?.onRefresh();
+      if (widget.onRefresh != null &&
+          _stateNotifier.value == RefreshState.REFRESHING) {
+        widget.onRefresh();
       }
     });
     _loadStateNotifier.addListener(() {
       widget?.controller?.loadState = _loadStateNotifier.value;
-      if (_loadStateNotifier.value == LoadState.LOADING) {
+      if (widget.onRefresh != null &&
+          _loadStateNotifier.value == LoadState.LOADING) {
         widget?.onLoad();
       }
     });
@@ -317,7 +333,8 @@ class _FRefreshState extends State<FRefresh> {
     _stateNotifier?.value = RefreshState.FINISHING;
     _scrollController
         .animateTo(widget.headerHeight,
-            duration: Duration(milliseconds: 200), curve: Curves.linear)
+            duration: Duration(milliseconds: FRefresh.debug ? 2000 : 300),
+            curve: Curves.linear)
         .whenComplete(() {
       _stateNotifier?.value = RefreshState.IDLE;
       _scrollController.jumpTo(0);
@@ -328,9 +345,7 @@ class _FRefreshState extends State<FRefresh> {
     if (_stateNotifier != null &&
         _stateNotifier.value == RefreshState.REFRESHING &&
         _scrollController != null) {
-      SchedulerBinding.instance.addPostFrameCallback((time) {
-        _finishRefreshAnim();
-      });
+      _finishRefreshAnim();
     }
   }
 
@@ -338,9 +353,8 @@ class _FRefreshState extends State<FRefresh> {
     _loadStateNotifier?.value = LoadState.FINISHING;
     _scrollController
         .animateTo(
-            _scrollController.position.maxScrollExtent -
-                _pixel(widget.footerHeight),
-            duration: Duration(milliseconds: 200),
+            _scrollController.position.maxScrollExtent - widget.footerHeight,
+            duration: Duration(milliseconds: 300),
             curve: Curves.linear)
         .whenComplete(() {
       _loadStateNotifier?.value = LoadState.IDLE;
@@ -348,9 +362,7 @@ class _FRefreshState extends State<FRefresh> {
   }
 
   void finishLoad() {
-    SchedulerBinding.instance.addPostFrameCallback((time) {
-      _finishLoadAnim();
-    });
+    _finishLoadAnim();
   }
 
   @override
@@ -358,13 +370,14 @@ class _FRefreshState extends State<FRefresh> {
     if (widget.child == null) return SizedBox();
     List<Widget> slivers = <Widget>[];
     if (isHeaderShow()) {
-      slivers.add(Header(
+      slivers.add(_Header(
         headerHeight: widget.headerHeight,
         triggerOffset: widget.headerTrigger,
         scrollNotifier: _scrollNotifier,
         stateNotifier: _stateNotifier,
         scrollController: _scrollController,
         child: widget.header,
+        build: widget.headerBuilder,
       ));
     }
     if (widget.child != null) {
@@ -380,11 +393,12 @@ class _FRefreshState extends State<FRefresh> {
         } else if (notification is ScrollUpdateNotification) {
           if (checkRefreshState(RefreshState.IDLE) &&
               checkLoadState(LoadState.IDLE) &&
-              -offset >= _pixel(widget.headerTrigger)) {
+              -offset >= widget.headerTrigger &&
+              (widget.header != null || widget.headerBuilder != null)) {
             /// enter preparing refresh
             _stateNotifier?.value = RefreshState.PREPARING_REFRESH;
           }
-        } else if (notification is ScrollEndNotification) {}
+        }
         if (widget.controller != null &&
             widget.controller._onScrollListener != null) {
           widget.controller._onScrollListener(notification.metrics);
@@ -419,13 +433,13 @@ class _FRefreshState extends State<FRefresh> {
                 }
               }
             });
-          } else if (extentAfter < _pixel(widget.footerHeight)) {
+          } else if (extentAfter < widget.footerHeight) {
             /// When this slide reaches between [footerTrigger] and [footerHeight], it will enter loading
             loadTimer = Timer(Duration(milliseconds: 100), () {
               if (_scrollController != null &&
                   _loadStateNotifier.value == LoadState.IDLE) {
                 _scrollController?.animateTo(
-                    maxScrollExtent - _pixel(widget.footerHeight),
+                    maxScrollExtent - widget.footerHeight,
                     duration: Duration(milliseconds: 200),
                     curve: Curves.linear);
               }
@@ -436,11 +450,10 @@ class _FRefreshState extends State<FRefresh> {
       },
       child: CustomScrollView(
         key: widget.key,
-//          shrinkWrap: widget.shrinkWrap,
         physics: _physics,
         controller: _scrollController,
         slivers: slivers,
-        cacheExtent: widget.headerHeight,
+//        cacheExtent: widget.headerHeight,
       ),
     );
   }
@@ -484,15 +497,17 @@ class _FRefreshState extends State<FRefresh> {
   }
 }
 
-class Header extends StatefulWidget {
+// ignore: must_be_immutable
+class _Header extends StatefulWidget {
   ValueNotifier<ScrollNotification> scrollNotifier;
   ValueNotifier<RefreshState> stateNotifier;
   ScrollController scrollController;
   double headerHeight;
   double triggerOffset;
   Widget child;
+  HeaderBuilder build;
 
-  Header({
+  _Header({
     Key key,
     this.scrollNotifier,
     this.stateNotifier,
@@ -500,20 +515,32 @@ class Header extends StatefulWidget {
     this.child,
     this.headerHeight = 50.0,
     this.triggerOffset = 60.0,
+    this.build,
   }) : super(key: key);
 
   @override
   _HeaderState createState() => _HeaderState();
 }
 
-class _HeaderState extends State<Header> {
+class _HeaderState extends State<_Header> {
+  ValueNotifier<double> headerTopOffset;
+
   @override
   void initState() {
     if (widget.stateNotifier != null) {
       widget.stateNotifier.addListener(() {
-        setState(() {});
+        if (mounted) {
+          setState(() {});
+        }
       });
+      headerTopOffset = ValueNotifier(0.0);
     }
+  }
+
+  @override
+  void dispose() {
+    headerTopOffset?.dispose();
+    super.dispose();
   }
 
   @override
@@ -523,24 +550,37 @@ class _HeaderState extends State<Header> {
       headerHeight: widget.headerHeight,
       triggerOffset: widget.triggerOffset,
       stateNotifier: widget.stateNotifier,
+      headerTopOffset: headerTopOffset,
       child: LayoutBuilder(builder: (_, constraints) {
+        double top = -widget.headerHeight + headerTopOffset?.value ?? 0.0;
         return Container(
-          color: FRefresh.debug ? Colors.black38 : null,
-          height: constraints.maxHeight,
-          alignment: Alignment.bottomCenter,
-          child: widget.child,
-        );
+            height: constraints.maxHeight,
+            decoration: BoxDecoration(
+              color: FRefresh.debug ? Colors.blue.withOpacity(0.2) : null,
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Positioned(
+                    top: top,
+                    child: widget.build != null
+                        ? widget.build(setState, constraints)
+                        : widget.child)
+              ],
+            ));
       }),
     );
   }
 }
 
+// ignore: must_be_immutable
 class _HeaderContainerWidget extends SingleChildRenderObjectWidget {
   Key key;
   Widget child;
   double headerHeight;
   double triggerOffset;
   ValueNotifier<RefreshState> stateNotifier;
+  ValueNotifier<double> headerTopOffset;
 
   _HeaderContainerWidget({
     this.key,
@@ -548,6 +588,7 @@ class _HeaderContainerWidget extends SingleChildRenderObjectWidget {
     this.headerHeight = 50.0,
     this.triggerOffset = 60.0,
     this.stateNotifier,
+    this.headerTopOffset,
   }) : super(key: key, child: child);
 
   @override
@@ -556,6 +597,7 @@ class _HeaderContainerWidget extends SingleChildRenderObjectWidget {
       headerHeight: headerHeight,
       triggerOffset: triggerOffset,
       stateNotifier: stateNotifier,
+      headerTopOffset: headerTopOffset,
     );
   }
 
@@ -565,12 +607,14 @@ class _HeaderContainerWidget extends SingleChildRenderObjectWidget {
     renderObject
       ..height = headerHeight
       ..triggerOffset = triggerOffset
-      ..stateNotifier = stateNotifier;
+      ..stateNotifier = stateNotifier
+      ..headerTopOffset = headerTopOffset;
   }
 }
 
 class _HeaderContainerRenderObject extends RenderSliverSingleBoxAdapter {
   ValueNotifier<RefreshState> stateNotifier;
+  ValueNotifier<double> headerTopOffset;
 
   double _triggerOffset;
 
@@ -618,6 +662,7 @@ class _HeaderContainerRenderObject extends RenderSliverSingleBoxAdapter {
     double triggerOffset = 60.0,
     RefreshState state,
     this.stateNotifier,
+    this.headerTopOffset,
   })  : _headerHeight = headerHeight ?? 50.0,
         _triggerOffset = triggerOffset ?? 60.0 {
     triggerOffset ??= 60.0;
@@ -634,22 +679,35 @@ class _HeaderContainerRenderObject extends RenderSliverSingleBoxAdapter {
   }
 
   @override
+  double get centerOffsetAdjustment {
+    // Header浮动时去掉越界
+    if (refreshing) {
+      final RenderViewportBase renderViewport = parent;
+      return max(0.0, -renderViewport.offset.pixels);
+    }
+    return super.centerOffsetAdjustment;
+  }
+
+  @override
   void performLayout() {
     final double overOffset =
         constraints.overlap < 0.0 ? constraints.overlap.abs() : 0.0;
 //    print('constraints = ${constraints}');
+//    print('overOffset = ${overOffset}');
     child.layout(
       constraints.asBoxConstraints(maxExtent: height + overOffset),
       parentUsesSize: true,
     );
     if (refreshing || preparingRefresh) {
+      headerTopOffset?.value = overOffset + height;
       geometry = SliverGeometry(
-        paintOrigin: -min(overOffset, height),
+        paintOrigin: -overOffset,
         paintExtent: childSize,
         maxPaintExtent: childSize,
-        layoutExtent: max(overOffset, height),
+        layoutExtent: height,
       );
     } else if (finishing) {
+      headerTopOffset?.value = overOffset;
       geometry = SliverGeometry(
         paintOrigin: -min(constraints.scrollOffset, height),
         paintExtent: childSize,
@@ -664,22 +722,36 @@ class _HeaderContainerRenderObject extends RenderSliverSingleBoxAdapter {
         paintExtent: childSize,
         maxPaintExtent: childSize,
         layoutExtent: overOffset,
+        visible: overOffset > 0,
+        hasVisualOverflow: false,
       );
       if (constraints.scrollOffset == 0) {
         useBuffer = false;
       }
     } else {
+      headerTopOffset?.value = overOffset +
+          (constraints.viewportMainAxisExtent -
+              constraints.remainingPaintExtent);
       geometry = SliverGeometry(
-        paintOrigin: -height,
+        paintOrigin: -min(overOffset, height),
         paintExtent: childSize,
         maxPaintExtent: childSize,
         layoutExtent: overOffset,
+        visible: overOffset > 0,
+        hasVisualOverflow: false,
       );
     }
     if (overOffset == 0 && preparingRefresh) {
       SchedulerBinding.instance.addPostFrameCallback((time) {
         stateNotifier?.value = RefreshState.REFRESHING;
       });
+    }
+  }
+
+  @override
+  void paint(PaintingContext paintContext, Offset offset) {
+    if (constraints.overlap < 0.0 || constraints.scrollOffset + childSize > 0) {
+      paintContext.paintChild(child, offset);
     }
   }
 }
