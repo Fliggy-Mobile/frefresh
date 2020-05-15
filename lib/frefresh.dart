@@ -66,10 +66,6 @@ typedef OnScrollListener = void Function(ScrollMetrics metrics);
 typedef HeaderBuilder = Widget Function(
     StateSetter setter, BoxConstraints constraints);
 
-double _pixel(double dp) {
-  return 1 * dp;
-}
-
 class FRefreshController {
   OnStateChangedCallback _onStateChangedCallback;
   OnScrollListener _onScrollListener;
@@ -293,6 +289,7 @@ class _FRefreshState extends State<FRefresh> {
   double tempHeaderHeight = 0.0;
 
   @override
+  // ignore: must_call_super
   void initState() {
     _scrollNotifier = ValueNotifier(null);
     _stateNotifier = ValueNotifier(RefreshState.IDLE);
@@ -317,6 +314,7 @@ class _FRefreshState extends State<FRefresh> {
         widget?.onLoad();
       }
     });
+    super.initState();
   }
 
   void refresh(Duration duration) {
@@ -480,8 +478,7 @@ class _FRefreshState extends State<FRefresh> {
       widget.footerHeight > 0;
 
   bool isHeaderShow() =>
-      widget.header != null &&
-      widget.headerHeight != null &&
+      (widget.header != null || widget.headerBuilder != null) &&
       widget.headerHeight > 0;
 
   @override
@@ -526,6 +523,7 @@ class _HeaderState extends State<_Header> {
   ValueNotifier<double> headerTopOffset;
 
   @override
+  // ignore: must_call_super
   void initState() {
     if (widget.stateNotifier != null) {
       widget.stateNotifier.addListener(() {
@@ -535,6 +533,7 @@ class _HeaderState extends State<_Header> {
       });
       headerTopOffset = ValueNotifier(0.0);
     }
+    super.initState();
   }
 
   @override
@@ -545,7 +544,6 @@ class _HeaderState extends State<_Header> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.child == null) return SizedBox();
     return _HeaderContainerWidget(
       headerHeight: widget.headerHeight,
       triggerOffset: widget.triggerOffset,
@@ -565,7 +563,7 @@ class _HeaderState extends State<_Header> {
                     top: top,
                     child: widget.build != null
                         ? widget.build(setState, constraints)
-                        : widget.child)
+                        : widget.child),
               ],
             ));
       }),

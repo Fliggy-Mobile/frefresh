@@ -14,6 +14,18 @@ Container buildTitle(String title) {
   );
 }
 
+SizedBox buildBiggestMargin() {
+  return const SizedBox(
+    height: 66,
+  );
+}
+
+SizedBox buildBigMargin() {
+  return const SizedBox(
+    height: 36,
+  );
+}
+
 SizedBox buildMiddleMargin() {
   return const SizedBox(
     height: 26,
