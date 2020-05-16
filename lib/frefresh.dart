@@ -290,11 +290,13 @@ class _FRefreshState extends State<FRefresh> {
   ValueNotifier<RefreshState> _stateNotifier;
   ValueNotifier<LoadState> _loadStateNotifier;
   ValueNotifier<bool> _scrollToRefreshNotifier;
+  ValueNotifier<bool> visibleNotifier;
 
   ScrollPhysics _physics;
   ScrollController _scrollController;
 
   Timer loadTimer;
+  Timer hideTimer;
 
   GlobalKey headerGlobalKey = GlobalKey();
 
@@ -307,6 +309,7 @@ class _FRefreshState extends State<FRefresh> {
     _stateNotifier = ValueNotifier(RefreshState.IDLE);
     _loadStateNotifier = ValueNotifier(LoadState.IDLE);
     _scrollToRefreshNotifier = ValueNotifier(false);
+    visibleNotifier = ValueNotifier(false);
     _physics = FBouncingScrollPhysics(footerHeight: widget.footerHeight);
     _scrollController = ScrollController();
     if (widget.controller != null) {
@@ -347,8 +350,9 @@ class _FRefreshState extends State<FRefresh> {
             duration: Duration(milliseconds: FRefresh.debug ? 2000 : 300),
             curve: Curves.linear)
         .whenComplete(() {
-      _stateNotifier?.value = RefreshState.IDLE;
       _scrollController.jumpTo(0);
+      _stateNotifier?.value = RefreshState.IDLE;
+      visibleNotifier?.value = false;
     });
   }
 
@@ -369,6 +373,7 @@ class _FRefreshState extends State<FRefresh> {
             curve: Curves.linear)
         .whenComplete(() {
       _loadStateNotifier?.value = LoadState.IDLE;
+      visibleNotifier?.value = false;
     });
   }
 
@@ -386,6 +391,7 @@ class _FRefreshState extends State<FRefresh> {
         triggerOffset: widget.headerTrigger,
         scrollNotifier: _scrollNotifier,
         stateNotifier: _stateNotifier,
+        visibleNotifier: visibleNotifier,
         scrollToRefreshNotifier: _scrollToRefreshNotifier,
         scrollController: _scrollController,
         child: widget.header,
@@ -397,16 +403,28 @@ class _FRefreshState extends State<FRefresh> {
     }
     if (isFooterShow()) {
       slivers.add(Footer(
-          child: widget.footerBuilder == null
-              ? widget.footer
-              : StatefulBuilder(builder: (context, setter) {
-                  return widget.footerBuilder(setter);
-                })));
+          child: Container(
+        color: FRefresh.debug ? Colors.black38 : null,
+        height: widget.footerHeight,
+        child: _VisibleContainer(
+            visibleNotifier: visibleNotifier,
+            child: widget.footerBuilder == null
+                ? widget.footer
+                : StatefulBuilder(
+                    builder: (context, setter) {
+                      return widget.footerBuilder(setter);
+                    },
+                  )),
+      )));
     }
     return NotificationListener<ScrollNotification>(
       onNotification: (ScrollNotification notification) {
+        hideTimer?.cancel();
         double offset = _scrollController.position.pixels;
         if (notification is ScrollStartNotification) {
+          if (!(visibleNotifier?.value ?? false)) {
+            visibleNotifier?.value = true;
+          }
         } else if (notification is ScrollUpdateNotification) {
           if (notification.dragDetails == null &&
               _stateNotifier?.value == RefreshState.PREPARING_REFRESH) {
@@ -428,14 +446,13 @@ class _FRefreshState extends State<FRefresh> {
         }
 
         /// handle loading
-        if (widget.shouldLoad &&
+        if (checkRefreshState(RefreshState.IDLE) &&
+            widget.shouldLoad &&
             isFooterShow() &&
             notification.metrics.maxScrollExtent > 0.0) {
           if (loadTimer != null) loadTimer.cancel();
           var maxScrollExtent = _scrollController.position.maxScrollExtent;
           double extentAfter = maxScrollExtent - offset;
-          print(
-              'notification = ${notification} , extentAfter = ${extentAfter}');
           if (extentAfter == 0.0 && checkLoadState(LoadState.PREPARING_LOAD)) {
             /// Enter loading
             _loadStateNotifier.value = LoadState.LOADING;
@@ -458,7 +475,8 @@ class _FRefreshState extends State<FRefresh> {
             });
           } else if (extentAfter < widget.footerTrigger) {
             /// When this slide reaches between [footerTrigger] and [footerHeight], it will enter loading
-            if (notification is UserScrollNotification) {
+            if (notification is UserScrollNotification ||
+                notification is ScrollEndNotification) {
               loadTimer = Timer(Duration(milliseconds: 100), () {
                 if (_loadStateNotifier.value == LoadState.IDLE) {
                   _scrollController?.animateTo(
@@ -467,10 +485,21 @@ class _FRefreshState extends State<FRefresh> {
                       curve: Curves.linear);
                 }
               });
-            } else if(_loadStateNotifier.value == LoadState.PREPARING_LOAD){
+            } else if (_loadStateNotifier.value == LoadState.PREPARING_LOAD) {
               _loadStateNotifier.value = LoadState.IDLE;
             }
           }
+        }
+        if ((notification is UserScrollNotification ||
+                notification is ScrollEndNotification) &&
+            checkRefreshState(RefreshState.IDLE) &&
+            checkLoadState(LoadState.IDLE) &&
+            (visibleNotifier?.value ?? false)) {
+          hideTimer = Timer(Duration(milliseconds: 500), () {
+            if (mounted) {
+              visibleNotifier?.value = false;
+            }
+          });
         }
         return false;
       },
@@ -517,26 +546,29 @@ class _FRefreshState extends State<FRefresh> {
     _stateNotifier?.dispose();
     _loadStateNotifier?.dispose();
     _scrollToRefreshNotifier?.dispose();
+    visibleNotifier?.dispose();
     widget.controller?.dispose();
   }
 }
 
 // ignore: must_be_immutable
 class _Header extends StatefulWidget {
-  ValueNotifier<ScrollNotification> scrollNotifier;
-  ValueNotifier<RefreshState> stateNotifier;
-  ValueNotifier<bool> scrollToRefreshNotifier;
-  ScrollController scrollController;
-  double headerHeight;
-  double triggerOffset;
-  Widget child;
-  HeaderBuilder build;
+  final ValueNotifier<ScrollNotification> scrollNotifier;
+  final ValueNotifier<RefreshState> stateNotifier;
+  final ValueNotifier<bool> scrollToRefreshNotifier;
+  final ValueNotifier<bool> visibleNotifier;
+  final ScrollController scrollController;
+  final double headerHeight;
+  final double triggerOffset;
+  final Widget child;
+  final HeaderBuilder build;
 
   _Header({
     Key key,
     this.scrollNotifier,
     this.stateNotifier,
     this.scrollToRefreshNotifier,
+    this.visibleNotifier,
     this.scrollController,
     this.child,
     this.headerHeight = 50.0,
@@ -591,9 +623,12 @@ class _HeaderState extends State<_Header> {
               children: [
                 Positioned(
                     top: top,
-                    child: widget.build != null
-                        ? widget.build(setState, constraints)
-                        : widget.child),
+                    child: _VisibleContainer(
+                      visibleNotifier: widget.visibleNotifier,
+                      child: widget.build != null
+                          ? widget.build(setState, constraints)
+                          : widget.child,
+                    )),
               ],
             ));
       }),
@@ -940,5 +975,38 @@ class FBouncingScrollPhysics extends BouncingScrollPhysics {
       absDelta -= deltaToLimit;
     }
     return total + absDelta;
+  }
+}
+
+class _VisibleContainer extends StatefulWidget {
+  final Widget child;
+  final ValueNotifier<bool> visibleNotifier;
+
+  _VisibleContainer({
+    Key key,
+    this.child,
+    this.visibleNotifier,
+  }) : super(key: key);
+
+  @override
+  _VisibleContainerState createState() => _VisibleContainerState();
+}
+
+class _VisibleContainerState extends State<_VisibleContainer> {
+  @override
+  void initState() {
+    super.initState();
+    widget.visibleNotifier?.addListener(() {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.child == null) return SizedBox();
+    return Visibility(
+        visible: widget.visibleNotifier?.value ?? false, child: widget.child);
   }
 }

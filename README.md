@@ -74,6 +74,7 @@
 |headerTrigger|double|否|0.0|触发下拉刷新的距离，应大于 [headerHeight]|
 |onRefresh|VoidCallback|否|null|触发刷新时会回调|
 |footer|Widget|否|null|上拉加载时会展示的元素|
+|footerBuilder|FooterBuilder|否|null|构建上拉加载元素。会覆盖 [footer] 配置。|
 |footerHeight|double|否|0.0|[footer] 区域的高度|
 |footerTrigger|double|否|0.0|触发上拉加载的距离，应大于 [headerHeight]|
 |shouldLoad|bool|否|true|是否应该触发上拉加载。在一些场景中，当加载完成后，上拉加载元素将需要变为页脚|
