@@ -785,16 +785,16 @@ class _HeaderContainerRenderObject extends RenderSliverSingleBoxAdapter {
       }
       geometry = SliverGeometry(
         paintOrigin: -overOffset,
-        paintExtent: childSize,
-        maxPaintExtent: childSize,
-        layoutExtent: layoutExtent,
+        paintExtent: fixValue(childSize),
+        maxPaintExtent: fixValue(childSize),
+        layoutExtent: fixValue(layoutExtent),
       );
     } else if (finishing) {
       headerTopOffset?.value = overOffset;
       geometry = SliverGeometry(
         paintOrigin: -min(constraints.scrollOffset, height),
-        paintExtent: childSize,
-        maxPaintExtent: childSize,
+        paintExtent: fixValue(childSize),
+        maxPaintExtent: fixValue(childSize),
         layoutExtent: height,
       );
       useBuffer = true;
@@ -802,9 +802,9 @@ class _HeaderContainerRenderObject extends RenderSliverSingleBoxAdapter {
       geometry = SliverGeometry(
         scrollExtent: constraints.scrollOffset,
         paintOrigin: -height,
-        paintExtent: childSize,
-        maxPaintExtent: childSize,
-        layoutExtent: overOffset,
+        paintExtent: fixValue(childSize),
+        maxPaintExtent: fixValue(childSize),
+        layoutExtent: fixValue(overOffset),
         visible: overOffset > 0,
         hasVisualOverflow: false,
       );
@@ -815,9 +815,9 @@ class _HeaderContainerRenderObject extends RenderSliverSingleBoxAdapter {
       headerTopOffset?.value = overOffset * 2.0;
       geometry = SliverGeometry(
         paintOrigin: -min(overOffset, height),
-        paintExtent: childSize,
-        maxPaintExtent: childSize,
-        layoutExtent: overOffset,
+        paintExtent: fixValue(childSize),
+        maxPaintExtent: fixValue(childSize),
+        layoutExtent: fixValue(overOffset),
         visible: overOffset > 0,
         hasVisualOverflow: false,
       );
@@ -829,9 +829,16 @@ class _HeaderContainerRenderObject extends RenderSliverSingleBoxAdapter {
     }
   }
 
+  double fixValue(double value) {
+    return min(value, constraints.remainingPaintExtent);
+  }
+
   @override
   void paint(PaintingContext paintContext, Offset offset) {
-    if (constraints.overlap < 0.0 || childSize > height || stateNotifier?.value != RefreshState.IDLE ?? false) {
+    if (constraints.overlap < 0.0 ||
+            childSize > height ||
+            stateNotifier?.value != RefreshState.IDLE ??
+        false) {
       paintContext.paintChild(child, offset);
     }
   }
