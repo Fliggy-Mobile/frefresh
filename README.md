@@ -9,9 +9,9 @@
 
 <div align="center">
 
-<p>下拉刷新，上拉加载，轻轻松松搞定。</p>
+<p>下拉刷新，上拉加载，帮助你轻轻松松搞定。</p>
 
-<p>***</p>
+<p>前所未有的简易，效果却令人惊叹不已。同时支持配置刷新、加载元素。完备的控制器让你帮助你掌控整个动态过程。</p>
 
 <p><strong>主理人：<a href="https://github.com/chenBingX">纽特</a>(<a href="coorchice.cb@alibaba-inc.com">coorchice.cb@alibaba-inc.com</a>)</strong></p>
 
@@ -46,9 +46,11 @@
 <p>
 <p>
 
-<img height="700" src="https://gw.alicdn.com/tfs/TB10qvQFrj1gK0jSZFOXXc7GpXa-964-1232.png">
-
 </div>
+
+||||||
+|:--:|:--:|:--:|:--:|:--:|
+|![](https://gw.alicdn.com/tfs/TB17ld1Gxz1gK0jSZSgXXavwpXa-550-391.gif)|![](https://gw.alicdn.com/tfs/TB1CTN0Gvb2gK0jSZK9XXaEgFXa-550-391.gif)|![](https://gw.alicdn.com/tfs/TB186p6Grj1gK0jSZFOXXc7GpXa-550-391.gif)|![](https://gw.alicdn.com/tfs/TB1fHJ3Grr1gK0jSZFDXXb9yVXa-550-391.gif)|![](https://gw.alicdn.com/tfs/TB11ex1Gvb2gK0jSZK9XXaEgFXa-550-391.gif)|
 
 **[English](https://github.com/Fliggy-Mobile/frefresh) | 简体中文**
 
@@ -152,9 +154,25 @@ controller.setOnStateChangedCallback((state){
 
 ## 📺 使用示例
 
-### 🔩 基本使用
+### 🔩 Refresh 示例
 
+![](https://gw.alicdn.com/tfs/TB17ld1Gxz1gK0jSZSgXXavwpXa-550-391.gif)
 
+### 🔩 HeaderBuilder 演示
+
+![](https://gw.alicdn.com/tfs/TB1CTN0Gvb2gK0jSZK9XXaEgFXa-550-391.gif)
+
+### 🔭 Load 示例
+
+![](https://gw.alicdn.com/tfs/TB186p6Grj1gK0jSZFOXXc7GpXa-550-391.gif)
+
+### 🔭 FooterBuilder 演示
+
+![](https://gw.alicdn.com/tfs/TB1fHJ3Grr1gK0jSZFDXXb9yVXa-550-391.gif)
+
+### ⚙️ Controller 演示
+
+![](https://gw.alicdn.com/tfs/TB11ex1Gvb2gK0jSZK9XXaEgFXa-550-391.gif)
 
 # 😃 如何使用？
 

@@ -103,7 +103,7 @@ class _MyAppState extends State<MyApp> {
         ),
         body: Container(
             width: double.infinity,
-            color: Colors.white,
+            color: mainBackgroundColor,
             child: SingleChildScrollView(
               physics: BouncingScrollPhysics(),
               child: Column(
