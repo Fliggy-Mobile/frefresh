@@ -66,6 +66,11 @@ typedef OnScrollListener = void Function(ScrollMetrics metrics);
 typedef HeaderBuilder = Widget Function(
     StateSetter setter, BoxConstraints constraints);
 
+/// 用于构建上拉加载元素
+///
+/// Used to build pull-up loading elements
+typedef FooterBuilder = Widget Function(StateSetter setter);
+
 class FRefreshController {
   OnStateChangedCallback _onStateChangedCallback;
   OnScrollListener _onScrollListener;
@@ -202,6 +207,11 @@ class FRefresh extends StatefulWidget {
   /// Elements that will be displayed when pulling up
   final Widget footer;
 
+  /// 构建上拉加载元素。会覆盖 [footer] 配置。
+  ///
+  /// Build pull-up loading elements. Will override [footer] configuration.
+  final FooterBuilder footerBuilder;
+
   /// 触发刷新时会回调
   ///
   /// Callback when refresh is triggered
@@ -251,6 +261,7 @@ class FRefresh extends StatefulWidget {
     this.headerBuilder,
     @required this.child,
     this.footer,
+    this.footerBuilder,
     this.onRefresh,
     this.controller,
     this.headerHeight = 50.0,
@@ -311,7 +322,7 @@ class _FRefreshState extends State<FRefresh> {
     });
     _loadStateNotifier.addListener(() {
       widget?.controller?.loadState = _loadStateNotifier.value;
-      if (widget.onRefresh != null &&
+      if (widget.onLoad != null &&
           _loadStateNotifier.value == LoadState.LOADING) {
         widget?.onLoad();
       }
@@ -385,7 +396,12 @@ class _FRefreshState extends State<FRefresh> {
       slivers.add(SliverToBoxAdapter(child: widget.child));
     }
     if (isFooterShow()) {
-      slivers.add(Footer(child: widget.footer));
+      slivers.add(Footer(
+          child: widget.footerBuilder == null
+              ? widget.footer
+              : StatefulBuilder(builder: (context, setter) {
+                  return widget.footerBuilder(setter);
+                })));
     }
     return NotificationListener<ScrollNotification>(
       onNotification: (ScrollNotification notification) {
@@ -413,24 +429,23 @@ class _FRefreshState extends State<FRefresh> {
 
         /// handle loading
         if (widget.shouldLoad &&
-            widget.footer != null &&
-            widget.footerHeight > 0 &&
-            widget.onLoad != null &&
+            isFooterShow() &&
             notification.metrics.maxScrollExtent > 0.0) {
           if (loadTimer != null) loadTimer.cancel();
           var maxScrollExtent = _scrollController.position.maxScrollExtent;
           double extentAfter = maxScrollExtent - offset;
-          if (extentAfter == 0.0 &&
-              checkLoadState(LoadState.PREPARING_LOAD)) {
+          print(
+              'notification = ${notification} , extentAfter = ${extentAfter}');
+          if (extentAfter == 0.0 && checkLoadState(LoadState.PREPARING_LOAD)) {
             /// Enter loading
             _loadStateNotifier.value = LoadState.LOADING;
-          } else if (offset - maxScrollExtent + widget.headerHeight >
+          } else if (offset - maxScrollExtent + widget.footerHeight >
               widget.footerTrigger) {
             /// This slide does not reach [footerTrigger] and will return to the bottom
+            _loadStateNotifier?.value = LoadState.PREPARING_LOAD;
             loadTimer = Timer(Duration(milliseconds: 100), () {
               if (checkLoadState(LoadState.IDLE) &&
                   checkRefreshState(RefreshState.IDLE)) {
-                _loadStateNotifier?.value = LoadState.PREPARING_LOAD;
                 if (maxScrollExtent == offset) {
                   _loadStateNotifier?.value = LoadState.LOADING;
                 } else {
@@ -441,17 +456,20 @@ class _FRefreshState extends State<FRefresh> {
                 }
               }
             });
-          } else if (extentAfter < widget.footerHeight) {
+          } else if (extentAfter < widget.footerTrigger) {
             /// When this slide reaches between [footerTrigger] and [footerHeight], it will enter loading
-            loadTimer = Timer(Duration(milliseconds: 100), () {
-              if (_scrollController != null &&
-                  _loadStateNotifier.value == LoadState.IDLE) {
-                _scrollController?.animateTo(
-                    maxScrollExtent - widget.footerHeight,
-                    duration: Duration(milliseconds: 200),
-                    curve: Curves.linear);
-              }
-            });
+            if (notification is UserScrollNotification) {
+              loadTimer = Timer(Duration(milliseconds: 100), () {
+                if (_loadStateNotifier.value == LoadState.IDLE) {
+                  _scrollController?.animateTo(
+                      maxScrollExtent - widget.footerHeight,
+                      duration: Duration(milliseconds: 200),
+                      curve: Curves.linear);
+                }
+              });
+            } else if(_loadStateNotifier.value == LoadState.PREPARING_LOAD){
+              _loadStateNotifier.value = LoadState.IDLE;
+            }
           }
         }
         return false;
@@ -483,7 +501,7 @@ class _FRefreshState extends State<FRefresh> {
   }
 
   bool isFooterShow() =>
-      widget.footer != null &&
+      (widget.footer != null || widget.footerBuilder != null) &&
       widget.footerHeight != null &&
       widget.footerHeight > 0;
 

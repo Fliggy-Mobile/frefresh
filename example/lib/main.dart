@@ -21,6 +21,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   FRefreshController controller1;
   FRefreshController controller2;
+  FRefreshController controller3;
   bool canLoad = true;
   int clickCount = 0;
 
@@ -45,6 +46,11 @@ class _MyAppState extends State<MyApp> {
 
     controller2 = FRefreshController();
     controller2.setOnStateChangedCallback((state) {
+      print('state = $state');
+    });
+
+    controller3 = FRefreshController();
+    controller3.setOnStateChangedCallback((state) {
       print('state = $state');
     });
   }
@@ -72,112 +78,100 @@ class _MyAppState extends State<MyApp> {
                 children: [
                   buildTitle("Base Demo"),
                   buildMiddleMargin(),
+
+                  /// Base Demo
                   baseDemo(),
                   buildMiddleMargin(),
                   buildTitle("HeaderBuilder Demo"),
                   buildMiddleMargin(),
+
+                  /// HeaderBuilder Demo
+                  buildHeaderBuilderDemo(),
+                  buildMiddleMargin(),
+                  buildTitle("Load Demo"),
+                  buildMiddleMargin(),
                   buildFRefreshContainer(FRefresh(
-                    controller: controller2,
-                    headerBuilder: (setter, constraints) {
-                      return Container(
-                        width: 220,
-                        height: 100.0,
-                        child: Stack(
+                    controller: controller3,
+                    footer: Container(
+                        height: 50,
+                        color: Colors.blue,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Image.asset(
-                              image2,
-                              height: 100.0,
-                              width: 220,
-                              fit: BoxFit.fitWidth,
-                            ),
-                            Positioned(
-                                right: 12,
-                                bottom: 10,
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    FRadio(
-                                      width: 20,
-                                      height: 10,
-                                      value: 1.0,
-                                      groupValue: groupValue,
-                                      normalColor: mainBackgroundColor,
-                                      selectedColor: mainTextNormalColor,
-                                      onChanged: (value) {
-                                        setter(() {
-                                          groupValue = value;
-                                          image2 = "assets/icon_refresh11.gif";
-                                        });
-                                      },
-                                    ),
-                                    const SizedBox(width: 6.0),
-                                    FRadio(
-                                      width: 20,
-                                      height: 10,
-                                      value: 2.0,
-                                      groupValue: groupValue,
-                                      normalColor: mainBackgroundColor,
-                                      selectedColor: mainTextNormalColor,
-                                      onChanged: (value) {
-                                        setter(() {
-                                          groupValue = value;
-                                          image2 = "assets/icon_refresh9.gif";
-                                        });
-                                      },
-                                    ),
-                                    const SizedBox(width: 6.0),
-                                    FRadio(
-                                      width: 20,
-                                      height: 10,
-                                      value: 3.0,
-                                      groupValue: groupValue,
-                                      normalColor: mainBackgroundColor,
-                                      selectedColor: mainTextNormalColor,
-                                      onChanged: (value) {
-                                        setter(() {
-                                          groupValue = value;
-                                          image2 = "assets/icon_refresh8.gif";
-                                        });
-                                      },
-                                    ),
-                                  ],
-                                ))
+                            Text("加载中.."),
                           ],
-                        ),
-                      );
-                    },
-                    headerHeight: 100.0,
-                    headerTrigger: 50,
-                    child: GridView.builder(
-                        physics: NeverScrollableScrollPhysics(),
-                        padding: EdgeInsets.only(
-                            top: 9.0, left: 12.0, right: 12.0, bottom: 9.0),
-                        itemCount: itemCount2,
-                        shrinkWrap: true,
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 9.0,
-                          mainAxisSpacing: 9.0,
-                        ),
-                        itemBuilder: (_, index) {
-                          return LayoutBuilder(builder: (_, constraints) {
-                            return GridItem(
-                              width: constraints.maxWidth,
-                              height: constraints.maxHeight,
-                              index: index,
-                            );
-                          });
-                        }),
-                    onRefresh: () {
-                      Timer(Duration(milliseconds: 5000), () {
-                        controller2.finishRefresh();
-                        setState(() {
-                          itemCount2++;
-                        });
+                        )),
+                    footerHeight: 50.0,
+                    onLoad: () {
+                      Timer(Duration(milliseconds: 3000), () {
+                        controller3.finishLoad();
                       });
                     },
+                    child: Container(
+                      width: 220,
+                      padding: EdgeInsets.only(top: 12),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          FSuper(
+                            width: 220.0 - 24.0,
+                            height: 100.0,
+                            backgroundColor: mainBackgroundColor,
+                            corner: Corner.all(6.0),
+                            shadowColor: mainShadowColor,
+                            shadowBlur: 3.0,
+                            shadowOffset: Offset(2.0, 2.0),
+                          ),
+                          const SizedBox(height: 15.0),
+                          GridView.builder(
+                              physics: NeverScrollableScrollPhysics(),
+                              padding: EdgeInsets.only(
+                                  left: 12.0, right: 12.0, bottom: 9.0),
+                              itemCount: 8,
+                              shrinkWrap: true,
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 4,
+                                crossAxisSpacing: 6.0,
+                                mainAxisSpacing: 9.0,
+                              ),
+                              itemBuilder: (_, index) {
+                                return LayoutBuilder(builder: (_, constraints) {
+                                  return GridItem(
+                                    width: constraints.maxWidth,
+                                    height: constraints.maxHeight,
+                                    index: index,
+                                  );
+                                });
+                              }),
+                          const SizedBox(height: 6.0),
+                          FSuper(
+                            width: 220.0 - 24.0,
+                            height: 30.0,
+                            backgroundColor: mainBackgroundColor,
+                            corner: Corner.all(6.0),
+                            shadowColor: mainShadowColor,
+                            shadowBlur: 3.0,
+                            shadowOffset: Offset(2.0, 2.0),
+                          ),
+                          const SizedBox(height: 6.0),
+                          ListView.builder(
+                              physics: NeverScrollableScrollPhysics(),
+                              padding: EdgeInsets.only(
+                                  left: 12.0, right: 12.0, bottom: 9.0),
+                              shrinkWrap: true,
+                              itemCount: 5,
+                              itemBuilder: (_, index) {
+                                return ListItem(
+                                  width: 350.0 - 24.0,
+                                  height: 80.0,
+                                  index: index,
+                                );
+                              })
+                        ],
+                      ),
+                    ),
                   )),
                   buildBiggestMargin(),
                   buildBiggestMargin(),
@@ -187,6 +181,112 @@ class _MyAppState extends State<MyApp> {
             )),
       ),
     );
+  }
+
+  Widget buildHeaderBuilderDemo() {
+    return buildFRefreshContainer(FRefresh(
+      controller: controller2,
+      headerBuilder: (setter, constraints) {
+        return Container(
+          width: 220,
+          height: 100.0,
+          child: Stack(
+            children: [
+              Image.asset(
+                image2,
+                height: 100.0,
+                width: 220,
+                fit: BoxFit.fitWidth,
+              ),
+              Positioned(
+                  right: 12,
+                  bottom: 10,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      FRadio(
+                        width: 20,
+                        height: 10,
+                        value: 1.0,
+                        groupValue: groupValue,
+                        normalColor: mainBackgroundColor,
+                        selectedColor: mainTextNormalColor,
+                        onChanged: (value) {
+                          setter(() {
+                            groupValue = value;
+                            image2 = "assets/icon_refresh11.gif";
+                          });
+                        },
+                      ),
+                      const SizedBox(width: 6.0),
+                      FRadio(
+                        width: 20,
+                        height: 10,
+                        value: 2.0,
+                        groupValue: groupValue,
+                        normalColor: mainBackgroundColor,
+                        selectedColor: mainTextNormalColor,
+                        onChanged: (value) {
+                          setter(() {
+                            groupValue = value;
+                            image2 = "assets/icon_refresh9.gif";
+                          });
+                        },
+                      ),
+                      const SizedBox(width: 6.0),
+                      FRadio(
+                        width: 20,
+                        height: 10,
+                        value: 3.0,
+                        groupValue: groupValue,
+                        normalColor: mainBackgroundColor,
+                        selectedColor: mainTextNormalColor,
+                        onChanged: (value) {
+                          setter(() {
+                            groupValue = value;
+                            image2 = "assets/icon_refresh8.gif";
+                          });
+                        },
+                      ),
+                    ],
+                  ))
+            ],
+          ),
+        );
+      },
+      headerHeight: 100.0,
+      headerTrigger: 50,
+      child: GridView.builder(
+          physics: NeverScrollableScrollPhysics(),
+          padding:
+              EdgeInsets.only(top: 9.0, left: 12.0, right: 12.0, bottom: 9.0),
+          itemCount: itemCount2,
+          shrinkWrap: true,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 9.0,
+            mainAxisSpacing: 9.0,
+          ),
+          itemBuilder: (_, index) {
+            return LayoutBuilder(builder: (_, constraints) {
+              return GridItem(
+                width: constraints.maxWidth,
+                height: constraints.maxHeight,
+                index: index,
+              );
+            });
+          }),
+      onRefresh: () {
+        Timer(Duration(milliseconds: 5000), () {
+          controller2.finishRefresh();
+          setState(() {
+            itemCount2++;
+          });
+        });
+      },
+    ));
   }
 
   Widget baseDemo() {
@@ -211,8 +311,7 @@ class _MyAppState extends State<MyApp> {
       headerHeight: 75.0,
       child: ListView.builder(
           physics: NeverScrollableScrollPhysics(),
-          padding: EdgeInsets.only(
-              top: 9.0, left: 12.0, right: 12.0, bottom: 9.0),
+          padding: EdgeInsets.only(left: 12.0, right: 12.0, bottom: 9.0),
           shrinkWrap: true,
           itemCount: itemCount1,
           itemBuilder: (_, index) {
@@ -273,8 +372,7 @@ class ListItem extends StatelessWidget {
     return Container(
       width: width,
       height: height,
-      margin:
-          EdgeInsets.only(top: 12.0 * hR),
+      margin: EdgeInsets.only(top: 12.0 * hR),
       padding: EdgeInsets.all(6.0 * hR),
       decoration: BoxDecoration(
         color: Colors.white,
