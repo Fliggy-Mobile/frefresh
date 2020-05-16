@@ -35,7 +35,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-//    FRefresh.debug = true;
+    FRefresh.debug = true;
     controller1 = FRefreshController();
     controller1.setOnStateChangedCallback((state) {
       print('state = $state');
@@ -44,6 +44,9 @@ class _MyAppState extends State<MyApp> {
     controller1.setOnScrollListener((metrics) {});
 
     controller2 = FRefreshController();
+    controller2.setOnStateChangedCallback((state) {
+      print('state = $state');
+    });
   }
 
   @override
@@ -146,6 +149,7 @@ class _MyAppState extends State<MyApp> {
                       );
                     },
                     headerHeight: 100.0,
+                    headerTrigger: 50,
                     child: GridView.builder(
                         physics: NeverScrollableScrollPhysics(),
                         padding: EdgeInsets.only(

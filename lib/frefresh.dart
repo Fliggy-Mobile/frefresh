@@ -278,6 +278,7 @@ class _FRefreshState extends State<FRefresh> {
   ValueNotifier<ScrollNotification> _scrollNotifier;
   ValueNotifier<RefreshState> _stateNotifier;
   ValueNotifier<LoadState> _loadStateNotifier;
+  ValueNotifier<bool> _scrollToRefreshNotifier;
 
   ScrollPhysics _physics;
   ScrollController _scrollController;
@@ -294,6 +295,7 @@ class _FRefreshState extends State<FRefresh> {
     _scrollNotifier = ValueNotifier(null);
     _stateNotifier = ValueNotifier(RefreshState.IDLE);
     _loadStateNotifier = ValueNotifier(LoadState.IDLE);
+    _scrollToRefreshNotifier = ValueNotifier(false);
     _physics = FBouncingScrollPhysics(footerHeight: widget.footerHeight);
     _scrollController = ScrollController();
     if (widget.controller != null) {
@@ -373,6 +375,7 @@ class _FRefreshState extends State<FRefresh> {
         triggerOffset: widget.headerTrigger,
         scrollNotifier: _scrollNotifier,
         stateNotifier: _stateNotifier,
+        scrollToRefreshNotifier: _scrollToRefreshNotifier,
         scrollController: _scrollController,
         child: widget.header,
         build: widget.headerBuilder,
@@ -384,74 +387,93 @@ class _FRefreshState extends State<FRefresh> {
     if (isFooterShow()) {
       slivers.add(Footer(child: widget.footer));
     }
-    return NotificationListener<ScrollNotification>(
-      onNotification: (ScrollNotification notification) {
-        double offset = _scrollController.position.pixels;
-        if (notification is ScrollStartNotification) {
-        } else if (notification is ScrollUpdateNotification) {
-          if (checkRefreshState(RefreshState.IDLE) &&
-              checkLoadState(LoadState.IDLE) &&
-              -offset >= widget.headerTrigger &&
-              (widget.header != null || widget.headerBuilder != null)) {
-            /// enter preparing refresh
-            _stateNotifier?.value = RefreshState.PREPARING_REFRESH;
+    return GestureDetector(
+      onPanEnd: (_) {
+        print('onPanEnd');
+      },
+      onPanCancel: () {
+        print('onPanCancel');
+      },
+//      onVerticalDragCancel: (){
+//        print('onVerticalDragCancel');
+//
+//      },
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (ScrollNotification notification) {
+          double offset = _scrollController.position.pixels;
+          if (notification is ScrollStartNotification) {
+          } else if (notification is ScrollUpdateNotification) {
+            if (notification.dragDetails == null &&
+                _stateNotifier?.value == RefreshState.PREPARING_REFRESH) {
+              _scrollToRefreshNotifier?.value = true;
+            } else {
+              _scrollToRefreshNotifier?.value = false;
+            }
+            if (checkRefreshState(RefreshState.IDLE) &&
+                checkLoadState(LoadState.IDLE) &&
+                -offset * 2 >= widget.headerTrigger &&
+                (widget.header != null || widget.headerBuilder != null)) {
+              /// enter preparing refresh
+              _stateNotifier?.value = RefreshState.PREPARING_REFRESH;
+            }
           }
-        }
-        if (widget.controller != null &&
-            widget.controller._onScrollListener != null) {
-          widget.controller._onScrollListener(notification.metrics);
-        }
+          if (widget.controller != null &&
+              widget.controller._onScrollListener != null) {
+            widget.controller._onScrollListener(notification.metrics);
+          }
 
-        /// handle loading
-        if (widget.shouldLoad &&
-            widget.footer != null &&
-            widget.footerHeight > 0 &&
-            widget.onLoad != null &&
-            notification.metrics.maxScrollExtent > 0.0) {
-          if (loadTimer != null) loadTimer.cancel();
-          var maxScrollExtent = _scrollController.position.maxScrollExtent;
-          double extentAfter = maxScrollExtent - offset;
-          if (extentAfter == 0.0 && checkLoadState(LoadState.PREPARING_LOAD)) {
-            /// Enter loading
-            _loadStateNotifier.value = LoadState.LOADING;
-          } else if (offset - maxScrollExtent + widget.headerHeight >
-              widget.footerTrigger) {
-            /// This slide does not reach [footerTrigger] and will return to the bottom
-            loadTimer = Timer(Duration(milliseconds: 100), () {
-              if (checkLoadState(LoadState.IDLE) &&
-                  checkRefreshState(RefreshState.IDLE)) {
-                _loadStateNotifier?.value = LoadState.PREPARING_LOAD;
-                if (maxScrollExtent == offset) {
-                  _loadStateNotifier?.value = LoadState.LOADING;
-                } else {
+          /// handle loading
+          if (widget.shouldLoad &&
+              widget.footer != null &&
+              widget.footerHeight > 0 &&
+              widget.onLoad != null &&
+              notification.metrics.maxScrollExtent > 0.0) {
+            if (loadTimer != null) loadTimer.cancel();
+            var maxScrollExtent = _scrollController.position.maxScrollExtent;
+            double extentAfter = maxScrollExtent - offset;
+            if (extentAfter == 0.0 &&
+                checkLoadState(LoadState.PREPARING_LOAD)) {
+              /// Enter loading
+              _loadStateNotifier.value = LoadState.LOADING;
+            } else if (offset - maxScrollExtent + widget.headerHeight >
+                widget.footerTrigger) {
+              /// This slide does not reach [footerTrigger] and will return to the bottom
+              loadTimer = Timer(Duration(milliseconds: 100), () {
+                if (checkLoadState(LoadState.IDLE) &&
+                    checkRefreshState(RefreshState.IDLE)) {
+                  _loadStateNotifier?.value = LoadState.PREPARING_LOAD;
+                  if (maxScrollExtent == offset) {
+                    _loadStateNotifier?.value = LoadState.LOADING;
+                  } else {
+                    _scrollController?.animateTo(
+                        _scrollController?.position?.maxScrollExtent,
+                        duration: Duration(milliseconds: 200),
+                        curve: Curves.linear);
+                  }
+                }
+              });
+            } else if (extentAfter < widget.footerHeight) {
+              /// When this slide reaches between [footerTrigger] and [footerHeight], it will enter loading
+              loadTimer = Timer(Duration(milliseconds: 100), () {
+                if (_scrollController != null &&
+                    _loadStateNotifier.value == LoadState.IDLE) {
                   _scrollController?.animateTo(
-                      _scrollController?.position?.maxScrollExtent,
+                      maxScrollExtent - widget.footerHeight,
                       duration: Duration(milliseconds: 200),
                       curve: Curves.linear);
                 }
-              }
-            });
-          } else if (extentAfter < widget.footerHeight) {
-            /// When this slide reaches between [footerTrigger] and [footerHeight], it will enter loading
-            loadTimer = Timer(Duration(milliseconds: 100), () {
-              if (_scrollController != null &&
-                  _loadStateNotifier.value == LoadState.IDLE) {
-                _scrollController?.animateTo(
-                    maxScrollExtent - widget.footerHeight,
-                    duration: Duration(milliseconds: 200),
-                    curve: Curves.linear);
-              }
-            });
+              });
+            }
           }
-        }
-        return false;
-      },
-      child: CustomScrollView(
-        key: widget.key,
-        physics: _physics,
-        controller: _scrollController,
-        slivers: slivers,
+          return false;
+        },
+        child: CustomScrollView(
+          key: widget.key,
+          physics: _physics,
+          controller: _scrollController,
+          slivers: slivers,
 //        cacheExtent: widget.headerHeight,
+        ),
       ),
     );
   }
@@ -484,13 +506,12 @@ class _FRefreshState extends State<FRefresh> {
   @override
   void dispose() {
     super.dispose();
-    _scrollController.dispose();
-    _scrollNotifier.dispose();
-    _stateNotifier.dispose();
-    _loadStateNotifier.dispose();
-    if (widget.controller != null) {
-      widget.controller.dispose();
-    }
+    _scrollController?.dispose();
+    _scrollNotifier?.dispose();
+    _stateNotifier?.dispose();
+    _loadStateNotifier?.dispose();
+    _scrollToRefreshNotifier?.dispose();
+    widget.controller?.dispose();
   }
 }
 
@@ -498,6 +519,7 @@ class _FRefreshState extends State<FRefresh> {
 class _Header extends StatefulWidget {
   ValueNotifier<ScrollNotification> scrollNotifier;
   ValueNotifier<RefreshState> stateNotifier;
+  ValueNotifier<bool> scrollToRefreshNotifier;
   ScrollController scrollController;
   double headerHeight;
   double triggerOffset;
@@ -508,6 +530,7 @@ class _Header extends StatefulWidget {
     Key key,
     this.scrollNotifier,
     this.stateNotifier,
+    this.scrollToRefreshNotifier,
     this.scrollController,
     this.child,
     this.headerHeight = 50.0,
@@ -549,6 +572,7 @@ class _HeaderState extends State<_Header> {
       triggerOffset: widget.triggerOffset,
       stateNotifier: widget.stateNotifier,
       headerTopOffset: headerTopOffset,
+      scrollToRefreshNotifier: widget.scrollToRefreshNotifier,
       child: LayoutBuilder(builder: (_, constraints) {
         double top = -widget.headerHeight + headerTopOffset?.value ?? 0.0;
         return Container(
@@ -579,6 +603,7 @@ class _HeaderContainerWidget extends SingleChildRenderObjectWidget {
   double triggerOffset;
   ValueNotifier<RefreshState> stateNotifier;
   ValueNotifier<double> headerTopOffset;
+  ValueNotifier<bool> scrollToRefreshNotifier;
 
   _HeaderContainerWidget({
     this.key,
@@ -587,6 +612,7 @@ class _HeaderContainerWidget extends SingleChildRenderObjectWidget {
     this.triggerOffset = 60.0,
     this.stateNotifier,
     this.headerTopOffset,
+    this.scrollToRefreshNotifier,
   }) : super(key: key, child: child);
 
   @override
@@ -596,6 +622,7 @@ class _HeaderContainerWidget extends SingleChildRenderObjectWidget {
       triggerOffset: triggerOffset,
       stateNotifier: stateNotifier,
       headerTopOffset: headerTopOffset,
+      scrollToRefreshNotifier: scrollToRefreshNotifier,
     );
   }
 
@@ -606,13 +633,15 @@ class _HeaderContainerWidget extends SingleChildRenderObjectWidget {
       ..height = headerHeight
       ..triggerOffset = triggerOffset
       ..stateNotifier = stateNotifier
-      ..headerTopOffset = headerTopOffset;
+      ..headerTopOffset = headerTopOffset
+      ..scrollToRefreshNotifier = scrollToRefreshNotifier;
   }
 }
 
 class _HeaderContainerRenderObject extends RenderSliverSingleBoxAdapter {
   ValueNotifier<RefreshState> stateNotifier;
   ValueNotifier<double> headerTopOffset;
+  ValueNotifier<bool> scrollToRefreshNotifier;
 
   double _triggerOffset;
 
@@ -655,15 +684,20 @@ class _HeaderContainerRenderObject extends RenderSliverSingleBoxAdapter {
 
   bool useBuffer = false;
 
+  double fixDiffTemp;
+  double fixHeaderTopDiffTemp;
+  double fixHeaderTopChildSizeDiffTemp;
+
   _HeaderContainerRenderObject({
     double headerHeight = 50.0,
-    double triggerOffset = 60.0,
+    double triggerOffset = 50.0,
     RefreshState state,
     this.stateNotifier,
     this.headerTopOffset,
+    this.scrollToRefreshNotifier,
   })  : _headerHeight = headerHeight ?? 50.0,
-        _triggerOffset = triggerOffset ?? 60.0 {
-    triggerOffset ??= 60.0;
+        _triggerOffset = triggerOffset ?? 50.0 {
+    triggerOffset ??= 50.0;
   }
 
   @override
@@ -677,32 +711,83 @@ class _HeaderContainerRenderObject extends RenderSliverSingleBoxAdapter {
   }
 
   @override
-  double get centerOffsetAdjustment {
-    // Header浮动时去掉越界
-    if (refreshing) {
-      final RenderViewportBase renderViewport = parent;
-      return max(0.0, -renderViewport.offset.pixels);
-    }
-    return super.centerOffsetAdjustment;
-  }
-
-  @override
   void performLayout() {
     final double overOffset =
         constraints.overlap < 0.0 ? constraints.overlap.abs() : 0.0;
-//    print('constraints = ${constraints}');
+//    print('constraints = ${constraints.axisDirection}');
 //    print('overOffset = ${overOffset}');
     child.layout(
       constraints.asBoxConstraints(maxExtent: height + overOffset),
       parentUsesSize: true,
     );
     if (refreshing || preparingRefresh) {
-      headerTopOffset?.value = overOffset + height;
+      double layoutExtent = height;
+      if (preparingRefresh) {
+        /// Enter preparingRefresh state
+
+        /// Whether you are in the PreparingRefresh state, and start to freely slide to the Refresh state
+        bool scrollToRefresh = scrollToRefreshNotifier?.value ?? false;
+        if (scrollToRefresh) {
+          layoutExtent = height;
+          if (overOffset > height) {
+            layoutExtent = height;
+
+            /// Calculate the distance the Header is offset downward
+            headerTopOffset?.value = childSize;
+          } else {
+            /// Record location information when you let go
+            if (fixDiffTemp == null) {
+              fixDiffTemp = height - overOffset;
+            }
+
+            /// Fix layoutExtent to prevent jumping when overOffset < height
+            /// At this time, the layoutExtent should gradually increase to the height from the sliding distance when the hand is released
+            double fixLayoutExtent = fixDiffTemp -
+                (fixDiffTemp * overOffset) / (height - fixDiffTemp);
+            layoutExtent = (height - fixDiffTemp) + fixLayoutExtent;
+
+            /// Calculate the distance the Header is offset downward
+            double headerOffset = headerTopOffset?.value ?? 0.0;
+
+            /// When the offset of the header after releasing is less than childSize, it needs to be gradually offset from the offset to the conversion height
+            /// So additional calculations are required
+            if (headerOffset < childSize && fixHeaderTopDiffTemp == null) {
+              /// Meet the conditions, record the position information when you let go
+              fixHeaderTopDiffTemp = headerOffset - height;
+              fixHeaderTopChildSizeDiffTemp = overOffset;
+            }
+            if (fixHeaderTopDiffTemp != null) {
+              /// Calculate header offset proportionally
+              headerTopOffset?.value = height +
+                  fixHeaderTopDiffTemp *
+                      overOffset /
+                      fixHeaderTopChildSizeDiffTemp;
+            } else {
+              /// Normally, the offset is the height of the header container
+              headerTopOffset?.value = childSize;
+            }
+          }
+        } else {
+          layoutExtent = min(overOffset, height);
+
+          /// In the pull-down process, enter the preparingRefresh state,
+          /// the downward shift of the Header should gradually increase with the pull-down, until the value equal childSize
+          headerTopOffset?.value = min(overOffset * 2.0, childSize);
+        }
+      } else {
+        /// Enter refresh state
+
+        /// When entering the Refresh state, you need to clear the cached location information to ensure the next refresh
+        fixDiffTemp = null;
+        fixHeaderTopDiffTemp = null;
+        fixHeaderTopChildSizeDiffTemp = null;
+        headerTopOffset?.value = childSize;
+      }
       geometry = SliverGeometry(
         paintOrigin: -overOffset,
         paintExtent: childSize,
         maxPaintExtent: childSize,
-        layoutExtent: height,
+        layoutExtent: layoutExtent,
       );
     } else if (finishing) {
       headerTopOffset?.value = overOffset;
@@ -727,9 +812,7 @@ class _HeaderContainerRenderObject extends RenderSliverSingleBoxAdapter {
         useBuffer = false;
       }
     } else {
-      headerTopOffset?.value = overOffset +
-          (constraints.viewportMainAxisExtent -
-              constraints.remainingPaintExtent);
+      headerTopOffset?.value = overOffset * 2.0;
       geometry = SliverGeometry(
         paintOrigin: -min(overOffset, height),
         paintExtent: childSize,
@@ -748,7 +831,7 @@ class _HeaderContainerRenderObject extends RenderSliverSingleBoxAdapter {
 
   @override
   void paint(PaintingContext paintContext, Offset offset) {
-    if (constraints.overlap < 0.0 || constraints.scrollOffset + childSize > 0) {
+    if (constraints.overlap < 0.0 || childSize > height || stateNotifier?.value != RefreshState.IDLE ?? false) {
       paintContext.paintChild(child, offset);
     }
   }
