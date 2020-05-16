@@ -387,93 +387,81 @@ class _FRefreshState extends State<FRefresh> {
     if (isFooterShow()) {
       slivers.add(Footer(child: widget.footer));
     }
-    return GestureDetector(
-      onPanEnd: (_) {
-        print('onPanEnd');
-      },
-      onPanCancel: () {
-        print('onPanCancel');
-      },
-//      onVerticalDragCancel: (){
-//        print('onVerticalDragCancel');
-//
-//      },
-      child: NotificationListener<ScrollNotification>(
-        onNotification: (ScrollNotification notification) {
-          double offset = _scrollController.position.pixels;
-          if (notification is ScrollStartNotification) {
-          } else if (notification is ScrollUpdateNotification) {
-            if (notification.dragDetails == null &&
-                _stateNotifier?.value == RefreshState.PREPARING_REFRESH) {
-              _scrollToRefreshNotifier?.value = true;
-            } else {
-              _scrollToRefreshNotifier?.value = false;
-            }
-            if (checkRefreshState(RefreshState.IDLE) &&
-                checkLoadState(LoadState.IDLE) &&
-                -offset * 2 >= widget.headerTrigger &&
-                (widget.header != null || widget.headerBuilder != null)) {
-              /// enter preparing refresh
-              _stateNotifier?.value = RefreshState.PREPARING_REFRESH;
-            }
+    return NotificationListener<ScrollNotification>(
+      onNotification: (ScrollNotification notification) {
+        double offset = _scrollController.position.pixels;
+        if (notification is ScrollStartNotification) {
+        } else if (notification is ScrollUpdateNotification) {
+          if (notification.dragDetails == null &&
+              _stateNotifier?.value == RefreshState.PREPARING_REFRESH) {
+            _scrollToRefreshNotifier?.value = true;
+          } else {
+            _scrollToRefreshNotifier?.value = false;
           }
-          if (widget.controller != null &&
-              widget.controller._onScrollListener != null) {
-            widget.controller._onScrollListener(notification.metrics);
+          if (checkRefreshState(RefreshState.IDLE) &&
+              checkLoadState(LoadState.IDLE) &&
+              -offset * 2 >= widget.headerTrigger &&
+              (widget.header != null || widget.headerBuilder != null)) {
+            /// enter preparing refresh
+            _stateNotifier?.value = RefreshState.PREPARING_REFRESH;
           }
+        }
+        if (widget.controller != null &&
+            widget.controller._onScrollListener != null) {
+          widget.controller._onScrollListener(notification.metrics);
+        }
 
-          /// handle loading
-          if (widget.shouldLoad &&
-              widget.footer != null &&
-              widget.footerHeight > 0 &&
-              widget.onLoad != null &&
-              notification.metrics.maxScrollExtent > 0.0) {
-            if (loadTimer != null) loadTimer.cancel();
-            var maxScrollExtent = _scrollController.position.maxScrollExtent;
-            double extentAfter = maxScrollExtent - offset;
-            if (extentAfter == 0.0 &&
-                checkLoadState(LoadState.PREPARING_LOAD)) {
-              /// Enter loading
-              _loadStateNotifier.value = LoadState.LOADING;
-            } else if (offset - maxScrollExtent + widget.headerHeight >
-                widget.footerTrigger) {
-              /// This slide does not reach [footerTrigger] and will return to the bottom
-              loadTimer = Timer(Duration(milliseconds: 100), () {
-                if (checkLoadState(LoadState.IDLE) &&
-                    checkRefreshState(RefreshState.IDLE)) {
-                  _loadStateNotifier?.value = LoadState.PREPARING_LOAD;
-                  if (maxScrollExtent == offset) {
-                    _loadStateNotifier?.value = LoadState.LOADING;
-                  } else {
-                    _scrollController?.animateTo(
-                        _scrollController?.position?.maxScrollExtent,
-                        duration: Duration(milliseconds: 200),
-                        curve: Curves.linear);
-                  }
-                }
-              });
-            } else if (extentAfter < widget.footerHeight) {
-              /// When this slide reaches between [footerTrigger] and [footerHeight], it will enter loading
-              loadTimer = Timer(Duration(milliseconds: 100), () {
-                if (_scrollController != null &&
-                    _loadStateNotifier.value == LoadState.IDLE) {
+        /// handle loading
+        if (widget.shouldLoad &&
+            widget.footer != null &&
+            widget.footerHeight > 0 &&
+            widget.onLoad != null &&
+            notification.metrics.maxScrollExtent > 0.0) {
+          if (loadTimer != null) loadTimer.cancel();
+          var maxScrollExtent = _scrollController.position.maxScrollExtent;
+          double extentAfter = maxScrollExtent - offset;
+          if (extentAfter == 0.0 &&
+              checkLoadState(LoadState.PREPARING_LOAD)) {
+            /// Enter loading
+            _loadStateNotifier.value = LoadState.LOADING;
+          } else if (offset - maxScrollExtent + widget.headerHeight >
+              widget.footerTrigger) {
+            /// This slide does not reach [footerTrigger] and will return to the bottom
+            loadTimer = Timer(Duration(milliseconds: 100), () {
+              if (checkLoadState(LoadState.IDLE) &&
+                  checkRefreshState(RefreshState.IDLE)) {
+                _loadStateNotifier?.value = LoadState.PREPARING_LOAD;
+                if (maxScrollExtent == offset) {
+                  _loadStateNotifier?.value = LoadState.LOADING;
+                } else {
                   _scrollController?.animateTo(
-                      maxScrollExtent - widget.footerHeight,
+                      _scrollController?.position?.maxScrollExtent,
                       duration: Duration(milliseconds: 200),
                       curve: Curves.linear);
                 }
-              });
-            }
+              }
+            });
+          } else if (extentAfter < widget.footerHeight) {
+            /// When this slide reaches between [footerTrigger] and [footerHeight], it will enter loading
+            loadTimer = Timer(Duration(milliseconds: 100), () {
+              if (_scrollController != null &&
+                  _loadStateNotifier.value == LoadState.IDLE) {
+                _scrollController?.animateTo(
+                    maxScrollExtent - widget.footerHeight,
+                    duration: Duration(milliseconds: 200),
+                    curve: Curves.linear);
+              }
+            });
           }
-          return false;
-        },
-        child: CustomScrollView(
-          key: widget.key,
-          physics: _physics,
-          controller: _scrollController,
-          slivers: slivers,
+        }
+        return false;
+      },
+      child: CustomScrollView(
+        key: widget.key,
+        physics: _physics,
+        controller: _scrollController,
+        slivers: slivers,
 //        cacheExtent: widget.headerHeight,
-        ),
       ),
     );
   }

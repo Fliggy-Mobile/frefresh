@@ -35,7 +35,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    FRefresh.debug = true;
+//    FRefresh.debug = true;
     controller1 = FRefreshController();
     controller1.setOnStateChangedCallback((state) {
       print('state = $state');
@@ -211,6 +211,8 @@ class _MyAppState extends State<MyApp> {
       headerHeight: 75.0,
       child: ListView.builder(
           physics: NeverScrollableScrollPhysics(),
+          padding: EdgeInsets.only(
+              top: 9.0, left: 12.0, right: 12.0, bottom: 9.0),
           shrinkWrap: true,
           itemCount: itemCount1,
           itemBuilder: (_, index) {
@@ -272,7 +274,7 @@ class ListItem extends StatelessWidget {
       width: width,
       height: height,
       margin:
-          EdgeInsets.only(top: 12.0 * hR, left: 12.0 * hR, right: 12.0 * hR),
+          EdgeInsets.only(top: 12.0 * hR),
       padding: EdgeInsets.all(6.0 * hR),
       decoration: BoxDecoration(
         color: Colors.white,
