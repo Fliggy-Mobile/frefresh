@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:ffloat/ffloat.dart';
 import 'package:flutter/material.dart';
 import 'package:fradio/fradio.dart';
 
@@ -214,7 +215,8 @@ class _MyAppState extends State<MyApp> {
                   shadowBlur: 3.0,
                   shadowOffset: Offset(2.0, 2.0),
                   onClick: () {
-                    controller5?.refresh(duration: Duration(milliseconds: 2000));
+                    controller5?.refresh(
+                        duration: Duration(milliseconds: 2000));
                   },
                 ),
                 child1Alignment: Alignment.topRight,
@@ -280,7 +282,7 @@ class _MyAppState extends State<MyApp> {
                     child: CircularProgressIndicator(
                       backgroundColor: mainBackgroundColor,
                       valueColor:
-                      new AlwaysStoppedAnimation<Color>(mainTextSubColor),
+                          new AlwaysStoppedAnimation<Color>(mainTextSubColor),
                       strokeWidth: 2.0,
                     ),
                   ),
@@ -319,8 +321,8 @@ class _MyAppState extends State<MyApp> {
               const SizedBox(height: 15.0),
               GridView.builder(
                   physics: NeverScrollableScrollPhysics(),
-                  padding: EdgeInsets.only(
-                      left: 12.0, right: 12.0, bottom: 9.0),
+                  padding:
+                      EdgeInsets.only(left: 12.0, right: 12.0, bottom: 9.0),
                   itemCount: 5,
                   shrinkWrap: true,
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -350,8 +352,8 @@ class _MyAppState extends State<MyApp> {
               const SizedBox(height: 9.0),
               GridView.builder(
                   physics: NeverScrollableScrollPhysics(),
-                  padding: EdgeInsets.only(
-                      left: 12.0, right: 12.0, bottom: 9.0),
+                  padding:
+                      EdgeInsets.only(left: 12.0, right: 12.0, bottom: 9.0),
                   itemCount: itemCount4,
                   shrinkWrap: true,
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -415,8 +417,8 @@ class _MyAppState extends State<MyApp> {
               const SizedBox(height: 15.0),
               GridView.builder(
                   physics: NeverScrollableScrollPhysics(),
-                  padding: EdgeInsets.only(
-                      left: 12.0, right: 12.0, bottom: 9.0),
+                  padding:
+                      EdgeInsets.only(left: 12.0, right: 12.0, bottom: 9.0),
                   itemCount: 8,
                   shrinkWrap: true,
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -426,10 +428,21 @@ class _MyAppState extends State<MyApp> {
                   ),
                   itemBuilder: (_, index) {
                     return LayoutBuilder(builder: (_, constraints) {
-                      return GridItem(
-                        width: constraints.maxWidth,
-                        height: constraints.maxHeight,
-                        index: index,
+                      return FFloat(
+                        (settter) {
+                          return Text(
+                            "Hello, Developer!",
+                            style: TextStyle(color: Colors.white),
+                          );
+                        },
+                        anchor: GridItem(
+                          width: constraints.maxWidth,
+                          height: constraints.maxHeight,
+                          index: index,
+                        ),
+                        padding: EdgeInsets.all(6.0),
+                        corner: FFloatCorner.all(3.0),
+                        margin: EdgeInsets.only(bottom: 6.0),
                       );
                     });
                   }),
@@ -446,8 +459,8 @@ class _MyAppState extends State<MyApp> {
               const SizedBox(height: 6.0),
               ListView.builder(
                   physics: NeverScrollableScrollPhysics(),
-                  padding: EdgeInsets.only(
-                      left: 12.0, right: 12.0, bottom: 9.0),
+                  padding:
+                      EdgeInsets.only(left: 12.0, right: 12.0, bottom: 9.0),
                   shrinkWrap: true,
                   itemCount: itemCount3,
                   itemBuilder: (_, index) {
@@ -543,7 +556,7 @@ class _MyAppState extends State<MyApp> {
         child: GridView.builder(
             physics: NeverScrollableScrollPhysics(),
             padding:
-            EdgeInsets.only(top: 9.0, left: 12.0, right: 12.0, bottom: 9.0),
+                EdgeInsets.only(top: 9.0, left: 12.0, right: 12.0, bottom: 9.0),
             itemCount: itemCount2,
             shrinkWrap: true,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
