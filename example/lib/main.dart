@@ -55,12 +55,9 @@ class _MyAppState extends State<MyApp> {
     colorList = [
       mainBackgroundColor,
       Color(0xffffebee),
-      Color(0xfff3e5f5),
       Color(0xffd1c4e9),
-      Color(0xffc5cae9),
       Color(0xffbbdefb),
       Color(0xffc8e6c9),
-      Color(0xfffff9c4),
       Color(0xffffe0b2),
       Color(0xffffccbc),
     ];
@@ -236,8 +233,8 @@ class _MyAppState extends State<MyApp> {
                       backgroundColor: textColor,
                       corner: Corner.all(2.0),
                       shadowColor: mainShadowColor,
-                      shadowBlur: 2.0,
-                      shadowOffset: Offset(1.0, 1.0),
+                      shadowBlur: 5.0,
+                      shadowOffset: Offset(2.0, 2.0),
                     );
                   })
             ],

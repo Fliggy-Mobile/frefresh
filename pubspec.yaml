@@ -1,5 +1,5 @@
 name: frefresh
-description: A new Flutter plugin.
+description: Help you to build pull-down refresh and pull-up loading in the simplest way.
 version: 1.0.0
 author: CoorChice<coorchice.cb@alibaba-inc.com>
 homepage: https://github.com/Fliggy-Mobile/frefresh
