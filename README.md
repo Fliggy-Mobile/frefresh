@@ -18,7 +18,7 @@
 <p>
 
 <a href="https://pub.dev/packages/frefresh#-readme-tab-">
-    <img height="20" src="https://img.shields.io/badge/Version-1.0.0-important.svg">
+    <img height="20" src="https://img.shields.io/badge/Version-1.1.0-important.svg">
 </a>
 
 
@@ -92,6 +92,9 @@
 |---|---|---|
 |refreshState|RefreshState|Get the pull-down refresh status. See [RefreshState] for details|
 |loadState|LoadState|Get the pull-up loading status. See [LoadState] for details|
+|position|double|Current scroll position|
+|scrollMetrics|ScrollMetrics|Current scroll information. See [ScrollMetrics] for details.|
+|backOriginOnLoadFinish|bool|When loading is completed, whether to return to the original position. This parameter is useful when the GridView only adds one element.|
 
 #### 📡 Interface
 
@@ -131,6 +134,24 @@ controller.setOnStateChangedCallback((state){
 - `void setOnScrollListener(OnScrollListener onScrollListener)`
 
 Set up scroll listener. Receive [ScrollMetrics].
+
+---
+
+- `void scrollTo(double position, {Duration duration = const Duration(milliseconds: 300)})`
+
+Scroll to the specified position.
+
+--- 
+
+- `void scrollBy(double offset, {Duration duration = const Duration(milliseconds: 300)})`
+
+Scroll the specified distance.
+
+--- 
+
+- `void jumpTo(double position)`
+
+Jump to the specified position.
 
 ### 🃏 RefreshState
 
@@ -403,6 +424,24 @@ controller.refresh(duration: Duration(milliseconds: 2000));
 ```
 
 This feature is very useful in many scenarios.
+
+#### 6. Scroll control
+
+**FRefreshController** provides a variety of intimate and delicate sliding controls for developers to choose.
+
+```dart
+
+/// Scroll to the specified position
+controller.scrollTo(100.0, duration:Duration(milliseconds: 2000));
+
+/// Scroll the specified distance
+controller.scrollBy(20.0, duration:Duration(milliseconds: 800));
+
+/// Jump to the specified position
+controller.jumpTo(100.0);
+```
+
+This makes many beautiful interactions easier to build.
 
 # 😃 How to use？
 

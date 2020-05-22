@@ -105,7 +105,38 @@ class FRefreshController {
     }
   }
 
+  /// 当前滑动位置
+  ///
+  /// Current scroll position
+  double get position {
+    if (_fRefreshState != null &&
+        _fRefreshState.mounted &&
+        _fRefreshState._scrollController != null) {
+      return _fRefreshState._scrollController.offset;
+    } else {
+      return 0.0;
+    }
+  }
+
+  /// 当前滑动信息。详见 [ScrollMetrics]。
+  ///
+  /// Current scroll information. See [ScrollMetrics] for details.
+  ScrollMetrics get scrollMetrics {
+    if (_fRefreshState != null &&
+        _fRefreshState.mounted &&
+        _fRefreshState._scrollController != null) {
+      return _fRefreshState._scrollController.position;
+    } else {
+      return null;
+    }
+  }
+
   _FRefreshState _fRefreshState;
+
+  /// 当加载完成后，是否回到原位置。例如当 GridView 只新增一个元素时，该参数会很有用。
+  ///
+  /// When loading is completed, whether to return to the original position. This parameter is useful when the GridView only adds one element.
+  bool backOriginOnLoadFinish = false;
 
   FRefreshController();
 
@@ -115,7 +146,7 @@ class FRefreshController {
   /// Actively trigger pull-down refresh.
   /// [duration] The duration of the pull-down effect. Default 300ms
   void refresh({Duration duration = const Duration(milliseconds: 300)}) {
-    if (_fRefreshState != null) {
+    if (_fRefreshState != null && _fRefreshState.mounted) {
       _fRefreshState.refresh(duration);
     } else {
       print('No FRefresh is bound!');
@@ -126,7 +157,7 @@ class FRefreshController {
   ///
   /// End pull-down refresh
   void finishRefresh() {
-    if (_fRefreshState != null) {
+    if (_fRefreshState != null && _fRefreshState.mounted) {
       _fRefreshState.finishRefresh();
     } else {
       print('No FRefresh is bound!');
@@ -137,7 +168,7 @@ class FRefreshController {
   ///
   /// End pull-up loading
   void finishLoad() {
-    if (_fRefreshState != null) {
+    if (_fRefreshState != null && _fRefreshState.mounted) {
       _fRefreshState.finishLoad();
     } else {
       print('No FRefresh is bound!');
@@ -171,6 +202,41 @@ class FRefreshController {
   /// Set up rolling monitoring. Receive [ScrollMetrics].
   void setOnScrollListener(OnScrollListener onScrollListener) {
     this._onScrollListener = onScrollListener;
+  }
+
+  /// 滚动到指定位置
+  ///
+  /// Scroll to the specified position
+  void scrollTo(double position, {Duration duration = const Duration(milliseconds: 300)}) {
+    if (_fRefreshState != null && _fRefreshState.mounted) {
+      _fRefreshState.scrollTo(position, duration: duration);
+    } else {
+      print('No FRefresh is bound!');
+    }
+  }
+
+  /// 滚动指定距离
+  ///
+  /// Scroll the specified distance
+  void scrollBy(double offset, {Duration duration = const Duration(milliseconds: 300)}) {
+    if (_fRefreshState != null && _fRefreshState.mounted) {
+      _fRefreshState.scrollTo(
+          (_fRefreshState?._scrollController?.offset ?? 0.0) + offset,
+          duration: duration);
+    } else {
+      print('No FRefresh is bound!');
+    }
+  }
+
+  /// 跳到指定位置
+  ///
+  /// Jump to the specified position
+  void jumpTo(double position) {
+    if (_fRefreshState != null && _fRefreshState.mounted) {
+      _fRefreshState.jumpTo(position);
+    } else {
+      print('No FRefresh is bound!');
+    }
   }
 
   void dispose() {
@@ -378,7 +444,23 @@ class _FRefreshState extends State<FRefresh> {
   }
 
   void finishLoad() {
-    _finishLoadAnim();
+    if (widget.controller?.backOriginOnLoadFinish ?? false) {
+      _finishLoadAnim();
+    } else {
+      _loadStateNotifier?.value = LoadState.FINISHING;
+      _loadStateNotifier?.value = LoadState.IDLE;
+      visibleNotifier?.value = false;
+    }
+  }
+
+  void scrollTo(double position,
+      {Duration duration = const Duration(milliseconds: 300)}) {
+    _scrollController?.animateTo(position,
+        duration: duration, curve: Curves.linear);
+  }
+
+  void jumpTo(double position) {
+    _scrollController?.jumpTo(position);
   }
 
   @override

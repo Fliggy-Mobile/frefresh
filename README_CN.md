@@ -18,7 +18,7 @@
 <p>
 
 <a href="https://pub.dev/packages/frefresh#-readme-tab-">
-    <img height="20" src="https://img.shields.io/badge/Version-1.0.0-important.svg">
+    <img height="20" src="https://img.shields.io/badge/Version-1.1.0-important.svg">
 </a>
 
 
@@ -93,6 +93,9 @@
 |---|---|---|
 |refreshState|RefreshState|获取下拉刷新状态。详见 [RefreshState]|
 |loadState|LoadState|获取上拉加载状态。详见 [LoadState]|
+|position|double|当前滑动位置|
+|scrollMetrics|ScrollMetrics|当前滑动信息。详见 [ScrollMetrics]。|
+|backOriginOnLoadFinish|bool|当加载完成后，是否回到原位置。例如当 GridView 只新增一个元素时，该参数会很有用。|
 
 #### 📡 接口
 
@@ -132,6 +135,24 @@ controller.setOnStateChangedCallback((state){
 - `void setOnScrollListener(OnScrollListener onScrollListener)`
 
 设置滚动监听。接收 [ScrollMetrics]。
+
+---
+
+- `void scrollTo(double position, {Duration duration = const Duration(milliseconds: 300)})`
+
+滚动到指定位置。
+
+--- 
+
+- `void scrollBy(double offset, {Duration duration = const Duration(milliseconds: 300)})`
+
+滚动指定距离。
+
+--- 
+
+- `void jumpTo(double position)`
+
+跳到指定位置。
 
 ### 🃏 RefreshState
 
@@ -404,6 +425,24 @@ controller.refresh(duration: Duration(milliseconds: 2000));
 ```
 
 这项功能在很多场景中都大有用处。
+
+#### 6. 滑动控制
+
+**FRefreshController** 提供了多种贴心、细腻的滑动控制，供开发者选用。
+
+```dart
+
+/// 滚动到指定位置
+controller.scrollTo(100.0, duration:Duration(milliseconds: 2000));
+
+/// 滚动指定距离
+controller.scrollBy(20.0, duration:Duration(milliseconds: 800));
+
+/// 跳到指定位置
+controller.jumpTo(100.0);
+```
+
+这让很多精美的交互都更易被构建。
 
 # 😃 如何使用？
 

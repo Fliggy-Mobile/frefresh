@@ -294,9 +294,11 @@ class _MyAppState extends State<MyApp> {
         footerHeight: 38.0,
         onLoad: () {
           Timer(Duration(milliseconds: 3000), () {
+            itemCount4++;
+            controller4.backOriginOnLoadFinish = itemCount4 % 2 == 0;
             controller4.finishLoad();
+            print('controller4.position = ${controller4.position}, controller4.scrollMetrics = ${controller4.scrollMetrics}');
             setState(() {
-              itemCount4++;
             });
           });
         },
@@ -364,6 +366,9 @@ class _MyAppState extends State<MyApp> {
                         width: constraints.maxWidth,
                         height: constraints.maxHeight,
                         index: index,
+                        onTap: (){
+                          controller4?.scrollBy(20.0);
+                        },
                       );
                     });
                   }),
@@ -747,11 +752,13 @@ class GridItem extends StatelessWidget {
   final double width;
   final double height;
   final int index;
+  final VoidCallback onTap;
 
   GridItem({
     this.width = 100,
     this.height = 100,
     this.index,
+    this.onTap,
   });
 
   @override
@@ -766,6 +773,7 @@ class GridItem extends StatelessWidget {
       shadowColor: mainShadowColor,
       shadowBlur: 3.0,
       shadowOffset: Offset(2.0, 2.0),
+      onClick: onTap,
       child1: FSuper(
         width: width,
         height: 36.0 * hR,
