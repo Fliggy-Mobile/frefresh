@@ -18,7 +18,7 @@
 <p>
 
 <a href="https://pub.dev/packages/frefresh#-readme-tab-">
-    <img height="20" src="https://img.shields.io/badge/Version-1.1.0-important.svg">
+    <img height="20" src="https://img.shields.io/badge/Version-1.1.1-important.svg">
 </a>
 
 
@@ -74,13 +74,13 @@
 |headerBuilder|HeaderBuilder|false|null|Construct a pull-down refresh element. [Header] configuration will be overwritten.|
 |headerHeight|double|false|50.0|[header] The height of the area|
 |headerTrigger|double|false|0.0|The distance to trigger pull-down refresh should be greater than [headerHeight]|
-|onRefresh|VoidCallback|false|null|Callback when refresh is triggered|
+|onRefresh|FRefreshCallback|false|null|Callback when refresh is triggered. Any value returned can automatically end the refreshing, otherwise it will not actively end the refreshing|
 |footer|Widget|false|null|Elements that will be displayed when pulling up|
 |footerBuilder|FooterBuilder|false|null|Build pull-up loading elements. Will override [footer] configuration.|
 |footerHeight|double|false|0.0|[footer] The height of the area|
 |footerTrigger|double|false|0.0|The distance to trigger the pull-up loading should be greater than [headerHeight]|
 |shouldLoad|bool|false|true|Whether the pull-up load should be triggered. In some scenarios, when the loading is completed, the pull-up loading element will need to be turned into a footer|
-|onLoad|VoidCallback|false|null|Callback when loading is triggered|
+|onLoad|FRefreshCallback|false|null|Callback when loading is triggered. Any value returned can automatically end the loading, otherwise it will not actively end the loading|
 |controller|FRefreshController|false|null|[Refresh] controller. See [Refresh Controller] for details|
 
 

@@ -18,7 +18,7 @@
 <p>
 
 <a href="https://pub.dev/packages/frefresh#-readme-tab-">
-    <img height="20" src="https://img.shields.io/badge/Version-1.1.0-important.svg">
+    <img height="20" src="https://img.shields.io/badge/Version-1.1.1-important.svg">
 </a>
 
 
@@ -75,13 +75,13 @@
 |headerBuilder|HeaderBuilder|否|null|构建下拉刷新元素。会覆盖 [header] 配置。|
 |headerHeight|double|否|50.0|[header] 区域的高度|
 |headerTrigger|double|否|0.0|触发下拉刷新的距离，应大于 [headerHeight]|
-|onRefresh|VoidCallback|否|null|触发刷新时会回调|
+|onRefresh|FRefreshCallback|否|null|触发刷新时会回调。返回任意值可自动结束刷新，否则不会主动结束刷新|
 |footer|Widget|否|null|上拉加载时会展示的元素|
 |footerBuilder|FooterBuilder|否|null|构建上拉加载元素。会覆盖 [footer] 配置。|
 |footerHeight|double|否|0.0|[footer] 区域的高度|
 |footerTrigger|double|否|0.0|触发上拉加载的距离，应大于 [headerHeight]|
 |shouldLoad|bool|否|true|是否应该触发上拉加载。在一些场景中，当加载完成后，上拉加载元素将需要变为页脚|
-|onLoad|VoidCallback|否|null|触发加载时会回调|
+|onLoad|FRefreshCallback|否|null|触发加载时会回调。返回任意值可自动结束加载，否则不会主动结束加载|
 |controller|FRefreshController|否|null|[FRefresh] 的控制器。详见 [FRefreshController]|
 
 

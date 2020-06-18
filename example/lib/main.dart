@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:fbutton/fbutton.dart';
 import 'package:ffloat/ffloat.dart';
 import 'package:flutter/material.dart';
 import 'package:fradio/fradio.dart';
@@ -88,6 +89,10 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    return buildMaterialApp();
+  }
+
+  MaterialApp buildMaterialApp() {
     return MaterialApp(
       home: Scaffold(
         backgroundColor: mainBackgroundColor,
@@ -170,6 +175,7 @@ class _MyAppState extends State<MyApp> {
           ],
         ),
         footerHeight: 50,
+        // ignore: missing_return
         onRefresh: () {
           Timer(Duration(milliseconds: 3000), () {
             controller5?.finishRefresh();
@@ -178,6 +184,7 @@ class _MyAppState extends State<MyApp> {
             });
           });
         },
+        // ignore: missing_return
         onLoad: () {
           Timer(Duration(milliseconds: 3000), () {
             controller5?.finishLoad();
@@ -292,14 +299,15 @@ class _MyAppState extends State<MyApp> {
               ));
         },
         footerHeight: 38.0,
+        // ignore: missing_return
         onLoad: () {
           Timer(Duration(milliseconds: 3000), () {
             itemCount4++;
             controller4.backOriginOnLoadFinish = itemCount4 % 2 == 0;
             controller4.finishLoad();
-            print('controller4.position = ${controller4.position}, controller4.scrollMetrics = ${controller4.scrollMetrics}');
-            setState(() {
-            });
+            print(
+                'controller4.position = ${controller4.position}, controller4.scrollMetrics = ${controller4.scrollMetrics}');
+            setState(() {});
           });
         },
         child: Container(
@@ -366,7 +374,7 @@ class _MyAppState extends State<MyApp> {
                         width: constraints.maxWidth,
                         height: constraints.maxHeight,
                         index: index,
-                        onTap: (){
+                        onTap: () {
                           controller4?.scrollBy(20.0);
                         },
                       );
@@ -392,6 +400,7 @@ class _MyAppState extends State<MyApp> {
               child: LinearProgressIndicator(),
             )),
         footerHeight: 20.0,
+        // ignore: missing_return
         onLoad: () {
           Timer(Duration(milliseconds: 3000), () {
             controller3.finishLoad();
@@ -575,6 +584,7 @@ class _MyAppState extends State<MyApp> {
                 );
               });
             }),
+        // ignore: missing_return
         onRefresh: () {
           Timer(Duration(milliseconds: 5000), () {
             controller2.finishRefresh();
@@ -625,7 +635,8 @@ class _MyAppState extends State<MyApp> {
                 ),
               );
             }),
-        onRefresh: () {
+        // ignore: missing_return
+        onRefresh: () async {
           Timer(Duration(milliseconds: 5000), () {
             setState(() {
               itemCount1++;

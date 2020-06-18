@@ -71,6 +71,11 @@ typedef HeaderBuilder = Widget Function(
 /// Used to build pull-up loading elements
 typedef FooterBuilder = Widget Function(StateSetter setter);
 
+/// 刷新、加载回调函数，返回任意值，将会结束刷新、加载
+///
+/// Refresh and load callback function, return any value, will end refresh and load
+typedef FRefreshCallback = Future Function();
+
 class FRefreshController {
   OnStateChangedCallback _onStateChangedCallback;
   OnScrollListener _onScrollListener;
@@ -207,7 +212,8 @@ class FRefreshController {
   /// 滚动到指定位置
   ///
   /// Scroll to the specified position
-  void scrollTo(double position, {Duration duration = const Duration(milliseconds: 300)}) {
+  void scrollTo(double position,
+      {Duration duration = const Duration(milliseconds: 300)}) {
     if (_fRefreshState != null && _fRefreshState.mounted) {
       _fRefreshState.scrollTo(position, duration: duration);
     } else {
@@ -218,7 +224,8 @@ class FRefreshController {
   /// 滚动指定距离
   ///
   /// Scroll the specified distance
-  void scrollBy(double offset, {Duration duration = const Duration(milliseconds: 300)}) {
+  void scrollBy(double offset,
+      {Duration duration = const Duration(milliseconds: 300)}) {
     if (_fRefreshState != null && _fRefreshState.mounted) {
       _fRefreshState.scrollTo(
           (_fRefreshState?._scrollController?.offset ?? 0.0) + offset,
@@ -281,12 +288,12 @@ class FRefresh extends StatefulWidget {
   /// 触发刷新时会回调
   ///
   /// Callback when refresh is triggered
-  final VoidCallback onRefresh;
+  final FRefreshCallback onRefresh;
 
   /// 触发加载时会回调
   ///
   /// Callback when loading is triggered
-  final VoidCallback onLoad;
+  final FRefreshCallback onLoad;
 
   /// [header] 区域的高度
   ///
@@ -382,18 +389,22 @@ class _FRefreshState extends State<FRefresh> {
       widget.controller._setFRefreshState(this);
     }
 
-    _stateNotifier.addListener(() {
+    _stateNotifier.addListener(() async {
       widget.controller?.refreshState = _stateNotifier.value;
       if (widget.onRefresh != null &&
           _stateNotifier.value == RefreshState.REFRESHING) {
-        widget.onRefresh();
+        if (await widget.onRefresh() != null) {
+          finishRefresh();
+        }
       }
     });
-    _loadStateNotifier.addListener(() {
+    _loadStateNotifier.addListener(() async {
       widget?.controller?.loadState = _loadStateNotifier.value;
       if (widget.onLoad != null &&
           _loadStateNotifier.value == LoadState.LOADING) {
-        widget?.onLoad();
+        if (await widget.onLoad() != null) {
+          finishLoad();
+        }
       }
     });
     super.initState();
