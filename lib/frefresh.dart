@@ -512,6 +512,9 @@ class _FRefreshState extends State<FRefresh> {
     }
     return NotificationListener<ScrollNotification>(
       onNotification: (ScrollNotification notification) {
+        if (notification.metrics.axisDirection == AxisDirection.left ||
+            notification.metrics.axisDirection == AxisDirection.right)
+          return false;
         hideTimer?.cancel();
         double offset = _scrollController.position.pixels;
         if (notification is ScrollStartNotification) {
