@@ -3,20 +3,14 @@ description: Demonstrates how to use the frefresh plugin.
 publish_to: 'none'
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.12.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^0.1.2
-  fsuper: ^0.1.5
-  fradio: ^1.0.1
-  ffloat: ^1.0.0
-  fswitch: ^1.1.2
-  fbutton: ^1.0.4
+  fsuper: ^2.2.1
+  ffloat: ^2.0.2
 
 dev_dependencies:
   flutter_test:

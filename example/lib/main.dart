@@ -1,16 +1,12 @@
 import 'dart:async';
 import 'dart:math';
-import 'dart:ui';
 
-import 'package:fbutton/fbutton.dart';
 import 'package:ffloat/ffloat.dart';
 import 'package:flutter/material.dart';
-import 'package:fradio/fradio.dart';
 
 import 'package:frefresh/frefresh.dart';
 import 'package:frefresh_example/part.dart';
 import 'package:fsuper/fsuper.dart';
-import 'package:fradio/fradio.dart';
 
 import 'color.dart';
 
@@ -22,11 +18,11 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  FRefreshController controller1;
-  FRefreshController controller2;
-  FRefreshController controller3;
-  FRefreshController controller4;
-  FRefreshController controller5;
+  late final FRefreshController controller1;
+  late final FRefreshController controller2;
+  late final FRefreshController controller3;
+  late final FRefreshController controller4;
+  late final FRefreshController controller5;
   bool canLoad = true;
   int clickCount = 0;
 
@@ -46,8 +42,8 @@ class _MyAppState extends State<MyApp> {
 
   String text4 = "Drop-down to loading";
 
-  Color textColor;
-  List<Color> colorList;
+  late Color textColor;
+  late List<Color> colorList;
 
   @override
   void initState() {
@@ -85,6 +81,16 @@ class _MyAppState extends State<MyApp> {
     controller5.setOnStateChangedCallback((state) {
       print('state = $state');
     });
+  }
+
+  @override
+  void dispose() {
+    controller1.dispose();
+    controller2.dispose();
+    controller3.dispose();
+    controller4.dispose();
+    controller5.dispose();
+    super.dispose();
   }
 
   @override
@@ -175,19 +181,17 @@ class _MyAppState extends State<MyApp> {
           ],
         ),
         footerHeight: 50,
-        // ignore: missing_return
-        onRefresh: () {
+        onRefresh: () async {
           Timer(Duration(milliseconds: 3000), () {
-            controller5?.finishRefresh();
+            controller5.finishRefresh();
             setState(() {
               textColor = getColor();
             });
           });
         },
-        // ignore: missing_return
-        onLoad: () {
+        onLoad: () async {
           Timer(Duration(milliseconds: 3000), () {
-            controller5?.finishLoad();
+            controller5.finishLoad();
             setState(() {
               itemCount5 = itemCount5 + 10;
             });
@@ -203,7 +207,7 @@ class _MyAppState extends State<MyApp> {
                 width: 220.0,
                 height: 100.0,
                 backgroundColor: textColor,
-                corner: Corner(leftTopCorner: 6.0, rightTopCorner: 6.0),
+                corner: FCorner(leftTopCorner: 6.0, rightTopCorner: 6.0),
                 shadowColor: mainShadowColor,
                 shadowBlur: 3.0,
                 shadowOffset: Offset(2.0, 2.0),
@@ -211,15 +215,15 @@ class _MyAppState extends State<MyApp> {
                   width: 28.0,
                   height: 28.0,
                   text: "R",
-                  textColor: Colors.white,
+                  style: TextStyle(color: Colors.white),
                   textAlignment: Alignment.center,
-                  corner: Corner.all(20.0),
+                  corner: FCorner.all(20.0),
                   backgroundColor: Colors.black38,
                   shadowColor: mainShadowColor,
                   shadowBlur: 3.0,
                   shadowOffset: Offset(2.0, 2.0),
                   onClick: () {
-                    controller5?.refresh(
+                    controller5.refresh(
                         duration: Duration(milliseconds: 2000));
                   },
                 ),
@@ -238,7 +242,7 @@ class _MyAppState extends State<MyApp> {
                       height: 5.0,
                       margin: EdgeInsets.only(top: index == 0 ? 0.0 : 12.0),
                       backgroundColor: textColor,
-                      corner: Corner.all(2.0),
+                      corner: FCorner.all(2.0),
                       shadowColor: mainShadowColor,
                       shadowBlur: 5.0,
                       shadowOffset: Offset(2.0, 2.0),
@@ -299,8 +303,7 @@ class _MyAppState extends State<MyApp> {
               ));
         },
         footerHeight: 38.0,
-        // ignore: missing_return
-        onLoad: () {
+        onLoad: () async {
           Timer(Duration(milliseconds: 3000), () {
             itemCount4++;
             controller4.backOriginOnLoadFinish = itemCount4 % 2 == 0;
@@ -320,7 +323,7 @@ class _MyAppState extends State<MyApp> {
                 width: 220.0,
                 height: 100.0,
                 backgroundColor: mainBackgroundColor,
-                corner: Corner(leftTopCorner: 6.0, rightTopCorner: 6.0),
+                corner: FCorner(leftTopCorner: 6.0, rightTopCorner: 6.0),
                 shadowColor: mainShadowColor,
                 shadowBlur: 3.0,
                 shadowOffset: Offset(2.0, 2.0),
@@ -351,7 +354,7 @@ class _MyAppState extends State<MyApp> {
                 width: 220.0 - 24.0,
                 height: 90.0,
                 backgroundColor: mainBackgroundColor,
-                corner: Corner.all(6.0),
+                corner: FCorner.all(6.0),
                 shadowColor: mainShadowColor,
                 shadowBlur: 3.0,
                 shadowOffset: Offset(2.0, 2.0),
@@ -375,7 +378,7 @@ class _MyAppState extends State<MyApp> {
                         height: constraints.maxHeight,
                         index: index,
                         onTap: () {
-                          controller4?.scrollBy(20.0);
+                          controller4.scrollBy(20.0);
                         },
                       );
                     });
@@ -400,8 +403,7 @@ class _MyAppState extends State<MyApp> {
               child: LinearProgressIndicator(),
             )),
         footerHeight: 20.0,
-        // ignore: missing_return
-        onLoad: () {
+        onLoad: () async {
           Timer(Duration(milliseconds: 3000), () {
             controller3.finishLoad();
             setState(() {
@@ -420,7 +422,7 @@ class _MyAppState extends State<MyApp> {
                 width: 220.0 - 24.0,
                 height: 100.0,
                 backgroundColor: mainBackgroundColor,
-                corner: Corner.all(6.0),
+                corner: FCorner.all(6.0),
                 shadowColor: mainShadowColor,
                 shadowBlur: 3.0,
                 shadowOffset: Offset(2.0, 2.0),
@@ -462,7 +464,7 @@ class _MyAppState extends State<MyApp> {
                 width: 220.0 - 24.0,
                 height: 30.0,
                 backgroundColor: mainBackgroundColor,
-                corner: Corner.all(6.0),
+                corner: FCorner.all(6.0),
                 shadowColor: mainShadowColor,
                 shadowBlur: 3.0,
                 shadowOffset: Offset(2.0, 2.0),
@@ -512,9 +514,7 @@ class _MyAppState extends State<MyApp> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        FRadio(
-                          width: 20,
-                          height: 10,
+                        _HeaderRadio(
                           value: 1.0,
                           groupValue: groupValue,
                           normalColor: mainBackgroundColor,
@@ -527,9 +527,7 @@ class _MyAppState extends State<MyApp> {
                           },
                         ),
                         const SizedBox(width: 6.0),
-                        FRadio(
-                          width: 20,
-                          height: 10,
+                        _HeaderRadio(
                           value: 2.0,
                           groupValue: groupValue,
                           normalColor: mainBackgroundColor,
@@ -542,9 +540,7 @@ class _MyAppState extends State<MyApp> {
                           },
                         ),
                         const SizedBox(width: 6.0),
-                        FRadio(
-                          width: 20,
-                          height: 10,
+                        _HeaderRadio(
                           value: 3.0,
                           groupValue: groupValue,
                           normalColor: mainBackgroundColor,
@@ -584,8 +580,7 @@ class _MyAppState extends State<MyApp> {
                 );
               });
             }),
-        // ignore: missing_return
-        onRefresh: () {
+        onRefresh: () async {
           Timer(Duration(milliseconds: 5000), () {
             controller2.finishRefresh();
             setState(() {
@@ -635,7 +630,6 @@ class _MyAppState extends State<MyApp> {
                 ),
               );
             }),
-        // ignore: missing_return
         onRefresh: () async {
           Timer(Duration(milliseconds: 5000), () {
             setState(() {
@@ -673,7 +667,7 @@ class ListItem extends StatelessWidget {
   ListItem({
     this.width = double.infinity,
     this.height = 100,
-    this.index,
+    required this.index,
   });
 
   @override
@@ -706,7 +700,7 @@ class ListItem extends StatelessWidget {
                 backgroundColor: mainBackgroundColor,
                 width: 30.0 * hR,
                 height: 30.0 * hR,
-                corner: Corner.all(30.0 * hR / 2.0),
+                corner: FCorner.all(30.0 * hR / 2.0),
               ),
               SizedBox(width: 9.0 * wR),
               Column(
@@ -716,14 +710,14 @@ class ListItem extends StatelessWidget {
                     backgroundColor: mainBackgroundColor,
                     width: 50.0 * wR,
                     height: 5.0 * hR,
-                    corner: Corner.all(10.0 * hR / 2.0),
+                    corner: FCorner.all(10.0 * hR / 2.0),
                   ),
                   SizedBox(height: 6.0 * hR),
                   FSuper(
                     backgroundColor: mainBackgroundColor,
                     width: 38.0 * wR,
                     height: 5.0 * hR,
-                    corner: Corner.all(10.0 * hR / 2.0),
+                    corner: FCorner.all(10.0 * hR / 2.0),
                   ),
                 ],
               ),
@@ -735,7 +729,7 @@ class ListItem extends StatelessWidget {
             backgroundColor: mainBackgroundColor,
             width: width / 2.8,
             height: 5.0 * hR,
-            corner: Corner.all(10.0 * hR / 2.0),
+            corner: FCorner.all(10.0 * hR / 2.0),
           ),
           SizedBox(height: 6.0 * hR),
           FSuper(
@@ -743,7 +737,7 @@ class ListItem extends StatelessWidget {
             backgroundColor: mainBackgroundColor,
             width: width / 2.0,
             height: 5.0 * hR,
-            corner: Corner.all(10.0 * hR / 2.0),
+            corner: FCorner.all(10.0 * hR / 2.0),
           ),
           SizedBox(height: 6.0 * hR),
           FSuper(
@@ -751,7 +745,7 @@ class ListItem extends StatelessWidget {
             backgroundColor: mainBackgroundColor,
             width: width / 2.0,
             height: 5.0 * hR,
-            corner: Corner.all(10.0 * hR / 2.0),
+            corner: FCorner.all(10.0 * hR / 2.0),
           ),
         ],
       ),
@@ -763,12 +757,12 @@ class GridItem extends StatelessWidget {
   final double width;
   final double height;
   final int index;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   GridItem({
     this.width = 100,
     this.height = 100,
-    this.index,
+    required this.index,
     this.onTap,
   });
 
@@ -780,7 +774,7 @@ class GridItem extends StatelessWidget {
       width: width,
       height: height,
       backgroundColor: Colors.white,
-      corner: Corner.all(6.0 * wR),
+      corner: FCorner.all(6.0 * wR),
       shadowColor: mainShadowColor,
       shadowBlur: 3.0,
       shadowOffset: Offset(2.0, 2.0),
@@ -789,7 +783,7 @@ class GridItem extends StatelessWidget {
         width: width,
         height: 36.0 * hR,
         backgroundColor: Colors.grey.withOpacity(0.1),
-        corner: Corner(leftBottomCorner: 6.0 * wR, rightBottomCorner: 6.0 * wR),
+        corner: FCorner(leftBottomCorner: 6.0 * wR, rightBottomCorner: 6.0 * wR),
         child1: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -798,14 +792,14 @@ class GridItem extends StatelessWidget {
               width: width / 2.0,
               height: 5.0 * hR,
               backgroundColor: Colors.white,
-              corner: Corner.all(5.0 * hR),
+              corner: FCorner.all(5.0 * hR),
             ),
             SizedBox(height: 6.0 * hR),
             FSuper(
               width: width / 1.3,
               height: 5.0 * hR,
               backgroundColor: Colors.white,
-              corner: Corner.all(5.0 * hR),
+              corner: FCorner.all(5.0 * hR),
             ),
           ],
         ),
@@ -813,6 +807,38 @@ class GridItem extends StatelessWidget {
         child1Margin: EdgeInsets.only(left: 9.0 * wR),
       ),
       child1Alignment: Alignment.bottomCenter,
+    );
+  }
+}
+
+class _HeaderRadio extends StatelessWidget {
+  final double value;
+  final double groupValue;
+  final Color normalColor;
+  final Color selectedColor;
+  final ValueChanged<double> onChanged;
+
+  const _HeaderRadio({
+    required this.value,
+    required this.groupValue,
+    required this.normalColor,
+    required this.selectedColor,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bool selected = value == groupValue;
+    return GestureDetector(
+      onTap: () => onChanged(value),
+      child: Container(
+        width: 20,
+        height: 10,
+        decoration: BoxDecoration(
+          color: selected ? selectedColor : normalColor,
+          borderRadius: BorderRadius.circular(5),
+        ),
+      ),
     );
   }
 }

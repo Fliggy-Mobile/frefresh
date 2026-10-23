@@ -1,3 +1,13 @@
+## 2.0.0
+
+- Null safety support (Dart SDK `>=2.12.0 <4.0.0`)
+
+- Fixed: "RenderBox.size accessed beyond the scope of resize, layout..." when the device orientation changes (#9)
+
+- Fixed: "No FRefresh is bound!" after switching tabs (#11). FRefresh no longer disposes the `FRefreshController` passed to it — the controller is only unbound when the bound FRefresh is disposed, and re-binds automatically when a new FRefresh is created. Owners should dispose the controller themselves when it is no longer needed
+
+- Breaking: `FRefreshController.scrollMetrics` now returns `ScrollMetrics?`
+
 ## 1.1.1
 
 - `onRefresh` and `onLoad` can return any value to stop refreshing automatically, without going through FRefreshController. E.g:
